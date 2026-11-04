@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Smart Attendance – Simulasi</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* =============================================
+       THE LUXURY ENTERPRISE PALETTE (BROKEN WHITE & CHAMPAGNE GOLD)
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:           #faf8f5;
+      --bg-alt:       #f4efe6;
+      --card:         #ffffff;
+      --obsidian:     #141210;
+      --obsidian-card:#1c1917;
+      --gold-primary: #d4a362;
+      --gold-glow:    #dfa86a;
+      --gold-dark:    #b8853b;
+      --gold-border:  rgba(212, 163, 98, 0.4);
+      --gold-soft-bg: rgba(212, 163, 98, 0.08);
+      --primary:      #d4a362;
+      --primary-d:    #b8853b;
+      --success:      #1e5a40;
+      --danger:       #9c2436;
+      --text:         #171412;
+      --text-muted:   #685f58;
+      --text-soft:    #8f857e;
+      --border:       rgba(212, 163, 98, 0.32);
+      --card-border:  rgba(212, 163, 98, 0.35);
+      --radius:       16px;
+      --radius-sm:    10px;
+      --shadow-sm:    0 2px 8px rgba(20, 18, 16, 0.04);
+      --shadow-md:    0 8px 24px rgba(20, 18, 16, 0.06);
+      --shadow-lg:    0 16px 40px rgba(20, 18, 16, 0.1);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =============================================
+       HALAMAN (show/hide)
+    ============================================= */
+    .page { display: none !important; }
+    .page.active { display: block !important; }
+
+    /* =============================================
+       LOGIN (Corporate Executive View)
+    ============================================= */
+    #page-login.active {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 16px;
+      background: radial-gradient(circle at 50% 15%, #ffffff 0%, #faf8f5 60%, #f4efe6 100%);
+    }
+    .app-header { text-align: center; color: var(--text); margin-bottom: 28px; }
+    .app-logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      background: var(--obsidian);
+      border: 1.5px solid var(--gold-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 22px rgba(20, 18, 16, 0.15);
+      font-size: 26px;
+      color: var(--gold-glow);
+    }
+    .app-header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--obsidian);
+    }
+    .app-header p {
+      font-size: 13px;
+      color: var(--gold-dark);
+      margin-top: 5px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* =============================================
+       CARD (Non-flat Luxury Raised Container)
+    ============================================= */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+    #page-login .card {
+      width: 100%;
+      max-width: 400px;
+      background: #ffffff;
+      box-shadow: 0 12px 36px rgba(20, 18, 16, 0.08);
+      border: 1.5px solid var(--gold-border);
+    }
+    #page-login .card h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--obsidian);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #page-login .card h2::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--gold-glow), var(--gold-dark));
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .card h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--obsidian);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h3 i {
+      color: var(--gold-primary);
+    }
+
+    /* Alert Banner */
+    .alert {
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+    .alert.show {
+      display: block;
+    }
+    .alert-error {
+      background: #fdf0f2;
+      border: 1px solid #f2c7ce;
+      color: #9c2436;
+    }
+    .alert-success {
+      background: #edf6f1;
+      border: 1px solid #bfe0cf;
+      color: #1e5a40;
+    }
+    .alert-info {
+      background: #faf8f5;
+      border: 1px solid var(--gold-border);
+      color: var(--obsidian);
+      font-weight: 600;
+    }
+
+    /* =============================================
+       FORM (Clean Elegant Inputs)
+    ============================================= */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: all .2s ease;
+    }
+    .form-group input:focus {
+      background: #ffffff;
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(212, 163, 98, 0.2);
+    }
+    .input-eye { position: relative; }
+    .input-eye input { padding-right: 44px; }
+    .btn-eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-soft);
+      transition: color 0.15s ease;
+    }
+    .btn-eye:hover { color: var(--gold-dark); }
+
+    /* =============================================
+       TOMBOL (Luxury Amber Gold "JOIN NOW" Style)
+    ============================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #dfa86a 0%, #c7924d 100%);
+      color: #14110e;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 4px 18px rgba(199, 146, 77, 0.38);
+      border: 1px solid rgba(255, 235, 205, 0.4);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #e8b377 0%, #d49c55 100%);
+      box-shadow: 0 6px 22px rgba(199, 146, 77, 0.48);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      color: var(--obsidian);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--gold-soft-bg);
+      border-color: var(--gold-primary);
+      color: var(--gold-dark);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #23694b, #174c35);
+      color: #ffffff;
+      box-shadow: 0 3px 12px rgba(35, 105, 75, 0.3);
+      font-weight: 700;
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #aa2c3f, #831b2b);
+      color: #ffffff;
+      box-shadow: 0 3px 12px rgba(170, 44, 63, 0.3);
+      font-weight: 700;
+    }
+    .btn-ghost {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      color: var(--obsidian);
+      margin-top: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .btn-ghost:hover {
+      background: var(--gold-soft-bg);
+      border-color: var(--gold-primary);
+      color: var(--gold-dark);
+    }
+    .btn-full { width: 100%; }
+    .btn-sm   { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+
+    .btn-absen {
+      font-size: 14px;
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #dfa86a 0%, #c7924d 100%);
+      color: #14110e;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 20px rgba(199, 146, 77, 0.4);
+      border: 1px solid rgba(255, 240, 215, 0.5);
+    }
+    .btn-absen:hover:not(:disabled) {
+      background: linear-gradient(135deg, #e8b377 0%, #d49c55 100%);
+      box-shadow: 0 8px 26px rgba(199, 146, 77, 0.5);
+      transform: translateY(-2px);
+    }
+    .btn-izin {
+      background: #ffffff;
+      border: 1.5px solid var(--gold-border);
+      color: var(--obsidian);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      box-shadow: var(--shadow-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-izin:hover:not(:disabled) {
+      background: var(--gold-soft-bg);
+      border-color: var(--gold-primary);
+      color: var(--gold-dark);
+      transform: translateY(-1px);
+    }
+    .card-izin-form {
+      animation: slideDown 0.22s ease forwards;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .izin-pill-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 9px 4px;
+      background: #faf8f5;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+    .izin-pill-btn i {
+      font-size: 14px;
+      color: var(--gold-dark);
+      transition: color 0.15s ease;
+    }
+    .izin-pill-btn:hover {
+      background: #ffffff;
+      border-color: var(--gold-primary);
+      color: var(--obsidian);
+    }
+    .izin-pill-btn.active {
+      background: #ffffff;
+      border-color: var(--gold-dark);
+      color: var(--obsidian);
+      box-shadow: 0 2px 8px rgba(184, 133, 59, 0.2);
+      outline: 2px solid rgba(212, 163, 98, 0.4);
+    }
+    .izin-pill-btn.active i {
+      color: var(--gold-primary);
+    }
+    .btn-logout,
+    .btn-topbar-nav {
+      background: rgba(255, 255, 255, 0.08);
+      color: #dfa86a;
+      border: 1px solid rgba(212, 163, 98, 0.45);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-logout:hover,
+    .btn-topbar-nav:hover {
+      background: var(--gold-glow);
+      color: #14110e;
+      border-color: var(--gold-glow);
+      transform: translateY(-1px);
+    }
+
+    /* =============================================
+       TOPBAR (Deep Obsidian Noir Luxury Header)
+    ============================================= */
+    .topbar {
+      background: var(--obsidian);
+      border-bottom: 1.5px solid var(--gold-border);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-name {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #ffffff;
+    }
+    .topbar-nim {
+      font-size: 11px;
+      color: var(--gold-glow);
+      margin-top: 3px;
+      font-weight: 600;
+      font-family: ui-monospace, monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* =============================================
+       TAB NAV (High-Contrast Segmented Bar)
+    ============================================= */
+    .tab-nav {
+      display: flex;
+      background: #1c1917;
+      border-bottom: 1px solid rgba(212, 163, 98, 0.25);
+      position: sticky;
+      top: 60px;
+      z-index: 50;
+      padding: 6px 12px;
+      gap: 6px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      background: transparent;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.65);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all .2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #dfa86a, #c7924d);
+      color: #14110e;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      box-shadow: 0 3px 10px rgba(199, 146, 77, 0.35);
+    }
+
+    /* =============================================
+       TAB CONTENT
+    ============================================= */
+    .tab-content { display: none; padding: 18px 16px 32px; }
+    .tab-content.active { display: block; animation: fadeIn .2s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =============================================
+       STATUS BADGE
+    ============================================= */
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+    .status-row i {
+      color: var(--gold-dark);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-idle {
+      background: var(--bg-alt);
+      color: var(--obsidian);
+      border: 1px solid var(--border);
+    }
+    .badge-hadir {
+      background: #edf6f1;
+      color: #1e5a40;
+      border: 1px solid #c8e3d4;
+    }
+    .badge-terlambat {
+      background: #faedf0;
+      color: #9c2436;
+      border: 1px solid #ebd0d6;
+    }
+
+    /* =============================================
+       PETA
+    ============================================= */
+    #map {
+      height: 220px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .leaflet-pane, .leaflet-top, .leaflet-bottom { z-index: 1 !important; }
+    .lokasi-info {
+      margin-bottom: 14px;
+      background: #faf8f5;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+    .lokasi-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(212, 163, 98, 0.25);
+      font-size: 12px;
+    }
+    .lokasi-row:last-child { border-bottom: none; }
+    .lokasi-row span:first-child { color: var(--text-muted); }
+    .lokasi-row span:last-child  {
+      font-weight: 700;
+      text-align: right;
+      max-width: 65%;
+      color: var(--obsidian);
+      font-family: ui-monospace, monospace;
+    }
+
+    /* =============================================
+       FOTO
+    ============================================= */
+    .foto-preview-wrap {
+      position: relative;
+      margin-bottom: 12px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1.5px solid var(--gold-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .foto-preview-wrap img {
+      width: 100%;
+      display: block;
+      max-height: 260px;
+      object-fit: cover;
+    }
+    .btn-hapus-foto {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(20, 18, 16, 0.75);
+      color: #fff;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .foto-placeholder {
+      height: 120px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      background: #faf8f5;
+    }
+
+    /* Kamera live */
+    .kamera-wrap { margin-bottom: 12px; }
+    .kamera-wrap video {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gold-primary);
+      background: #000;
+      display: block;
+    }
+    .kamera-controls { display: flex; gap: 10px; margin-top: 10px; }
+    .kamera-controls .btn { flex: 1; }
+
+    /* Tombol foto */
+    .foto-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .foto-actions .btn,
+    .foto-actions .btn-upload-label {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 16px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #ffffff;
+      color: var(--obsidian);
+      box-shadow: var(--shadow-sm);
+      transition: all .2s;
+      user-select: none;
+    }
+    .foto-actions .btn-upload-label:hover,
+    .foto-actions .btn:hover {
+      background: var(--gold-soft-bg);
+      border-color: var(--gold-primary);
+      color: var(--gold-dark);
+    }
+    .input-file-hidden { display: none; }
+
+    /* =============================================
+       ALERT
+    ============================================= */
+    .alert {
+      display: none;
+      padding: 12px 15px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .alert.show { display: block; animation: fadeIn .2s ease; }
+    .alert-success { background: #edf6f1; color: #1e5a40; border: 1px solid #c8e3d4; }
+    .alert-error   { background: #faedf0; color: #9c2436; border: 1px solid #ebd0d6; }
+    .alert-info    { background: var(--gold-soft-bg); color: var(--gold-dark); border: 1px solid var(--border); }
+
+    /* =============================================
+       RIWAYAT
+    ============================================= */
+    .riwayat-item {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .riwayat-item:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--gold-primary);
+    }
+    .riwayat-foto {
+      width: 58px;
+      height: 58px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+    }
+    .riwayat-foto-ph {
+      width: 58px;
+      height: 58px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: var(--bg-alt);
+      border: 1.5px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--gold-dark);
+    }
+    .riwayat-info { flex: 1; min-width: 0; }
+    .ri-tanggal {
+      font-size: 13px;
+      color: var(--obsidian);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .ri-status { margin-bottom: 6px; }
+    .ri-lokasi {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: ui-monospace, monospace;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* =============================================
+       SPINNER
+    ============================================= */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(20, 18, 16, 0.25);
+      border-top-color: #141210;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* =============================================
+       STAGE PILLS & ATTENDANCE STEPPER
+    ============================================= */
+    .stage-card {
+      background: var(--card);
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .step-pill {
+      padding: 10px 14px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+    .step-pill.active {
+      border: 1.5px solid var(--gold-border);
+      background: var(--gold-soft-bg);
+      box-shadow: 0 4px 12px rgba(199, 146, 77, 0.12);
+    }
+    .step-pill.done {
+      border: 1.5px solid rgba(30, 90, 64, 0.35);
+      background: rgba(30, 90, 64, 0.05);
+    }
+    .step-pill.pending {
+      border: 1px dashed var(--border);
+      background: #faf8f5;
+      opacity: 0.65;
+    }
+    .step-badge-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-pill.active .step-badge-num {
+      background: var(--gold-primary);
+      color: #14110e;
+      box-shadow: 0 2px 8px rgba(199, 146, 77, 0.4);
+    }
+    .step-pill.done .step-badge-num {
+      background: #1e5a40;
+      color: #ffffff;
+    }
+    .step-pill.pending .step-badge-num {
+      background: #e2dbd2;
+      color: #726861;
+    }
+
+    /* =============================================
+       UNIVERSAL LUXURY MODAL POPUP & TOAST
+    ============================================= */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 380px;
+    }
+    .toast-item {
+      background: rgba(20, 18, 16, 0.94);
+      color: #faf8f5;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(212, 163, 98, 0.4);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      pointer-events: auto;
+    }
+    .toast-item.success i { color: #52c48a; }
+    .toast-item.error i { color: #ff6b7e; }
+    .toast-item.info i { color: #dfa86a; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(20, 18, 16, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      animation: fadeIn 0.22s ease forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-popup-card {
+      background: #ffffff;
+      border: 1.5px solid var(--gold-border);
+      border-radius: 24px;
+      padding: 30px 24px 26px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 65px rgba(20, 18, 16, 0.22);
+      animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .modal-icon-circle.success {
+      background: linear-gradient(135deg, #1e5a40, #14422e);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(30, 90, 64, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+    .modal-icon-circle.error {
+      background: linear-gradient(135deg, #aa2c3f, #831b2b);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(170, 44, 63, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+    .modal-icon-circle.info, .modal-icon-circle.confirm {
+      background: linear-gradient(135deg, #dfa86a, #c7924d);
+      color: #14110e;
+      box-shadow: 0 8px 24px rgba(199, 146, 77, 0.35);
+      border: 2px solid rgba(255, 240, 215, 0.6);
+    }
+
+    .modal-title {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--obsidian);
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .modal-subtitle {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .modal-body-content {
+      background: #faf8f5;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      text-align: left;
+      line-height: 1.6;
+    }
+    .modal-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(212, 163, 98, 0.25);
+    }
+    .modal-row:last-child {
+      border-bottom: none;
+    }
+    .modal-lbl { color: var(--text-muted); font-weight: 500; }
+    .modal-val { color: var(--obsidian); font-weight: 700; }
+
+    .modal-actions-wrap {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    /* =============================================
+       DEMO ACCOUNTS SELECTOR (Luxury Interactive Grid)
+    ============================================= */
+    .demo-accounts-box {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+    .demo-accounts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .demo-accounts-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .demo-badge-hint {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      background: var(--gold-soft-bg);
+      color: var(--gold-dark);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .demo-pills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .demo-pill-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #faf8f5;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+      user-select: none;
+    }
+    .demo-pill-btn * {
+      pointer-events: none;
+    }
+    .demo-pill-btn:hover {
+      background: #ffffff;
+      border-color: var(--gold-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 163, 98, 0.15);
+    }
+    .demo-pill-btn.active {
+      background: #ffffff;
+      border-color: var(--gold-dark);
+      box-shadow: 0 4px 12px rgba(184, 133, 59, 0.2);
+      outline: 2px solid rgba(212, 163, 98, 0.4);
+    }
+    .demo-pill-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--gold-soft-bg);
+      border: 1px solid var(--border);
+      color: var(--gold-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .demo-pill-btn.active .demo-pill-icon {
+      background: var(--gold-primary);
+      color: #14110e;
+      border-color: var(--gold-primary);
+    }
+    .demo-pill-info {
+      min-width: 0;
+      flex: 1;
+      line-height: 1.25;
+    }
+    .demo-pill-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--obsidian);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tag-default {
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 4px;
+      background: #141210;
+      color: #dfa86a;
+      border-radius: 4px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .demo-pill-nim {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: ui-monospace, monospace;
+    }
+
+    /* =============================================
+       RESPONSIVE – SIMULASI LAYAR HP DI DESKTOP
+    ============================================= */
+    @media (min-width: 520px) {
+      body {
+        background: radial-gradient(circle at 50% 20%, #ffffff 0%, #faf8f5 50%, #f2ece1 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+      }
+      #page-login {
+        width: 100%;
+        max-width: 420px;
+        background: transparent !important;
+        min-height: auto !important;
+      }
+      #page-home {
+        width: 430px;
+        min-height: 840px;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow: 0 25px 60px rgba(20, 18, 16, 0.18), 0 0 0 1px rgba(212, 163, 98, 0.35);
+        border: 8px solid #1c1a17;
+        border-radius: 40px;
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================= LOGIN ============================= -->
+<div id="page-login" class="page active">
+  <div class="app-header">
+    <div class="app-logo"><i class="fa-solid fa-fingerprint" style="color:var(--primary)"></i></div>
+    <h1>Smart Attendance</h1>
+    <p>Portal Presensi Eksekutif</p>
+  </div>
+
+  <div class="card">
+    <h2>Autentikasi</h2>
+    <div id="login-alert" class="alert"></div>
+
+    <div class="form-group">
+      <label for="nim">Nomor Induk Mahasiswa / ID</label>
+      <input type="text" id="nim" value="2021001" placeholder="Masukkan ID / NIM Anda" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label for="password">Kata Sandi</label>
+      <div class="input-eye">
+        <input type="password" id="password" value="123456" placeholder="Masukkan kata sandi" />
+        <button type="button" class="btn-eye" onclick="togglePassword()"><i class="fa-regular fa-eye"></i></button>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">
+      <span id="login-btn-text">Masuk</span>
+    </button>
+
+    <!-- Demo Accounts Switcher (Default Terisi + 3 Pilihan Akun Lain) -->
+    <div class="demo-accounts-box">
+      <div class="demo-accounts-header">
+        <div class="demo-accounts-title">
+          <i class="fa-solid fa-users-viewfinder"></i>
+          <span>Pilih Akun Demo Uji Coba:</span>
+        </div>
+        <span class="demo-badge-hint">4 Akun Siap</span>
+      </div>
+
+      <div class="demo-pills-grid">
+        <button type="button" class="demo-pill-btn active" data-nim="2021001" data-pass="123456" data-nama="Ahmad Fauzi" onclick="selectDemoAccount('2021001', '123456', 'Ahmad Fauzi', this)" title="Pilih akun Ahmad Fauzi">
+          <div class="demo-pill-icon"><i class="fa-solid fa-user-check"></i></div>
+          <div class="demo-pill-info">
+            <div class="demo-pill-name">Ahmad Fauzi <span class="tag-default">Default</span></div>
+            <div class="demo-pill-nim">2021001</div>
+          </div>
+        </button>
+
+        <button type="button" class="demo-pill-btn" data-nim="2021002" data-pass="123456" data-nama="Siti Rahayu" onclick="selectDemoAccount('2021002', '123456', 'Siti Rahayu', this)" title="Pilih akun Siti Rahayu">
+          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+          <div class="demo-pill-info">
+            <div class="demo-pill-name">Siti Rahayu</div>
+            <div class="demo-pill-nim">2021002</div>
+          </div>
+        </button>
+
+        <button type="button" class="demo-pill-btn" data-nim="2021003" data-pass="123456" data-nama="Budi Santoso" onclick="selectDemoAccount('2021003', '123456', 'Budi Santoso', this)" title="Pilih akun Budi Santoso">
+          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+          <div class="demo-pill-info">
+            <div class="demo-pill-name">Budi Santoso</div>
+            <div class="demo-pill-nim">2021003</div>
+          </div>
+        </button>
+
+        <button type="button" class="demo-pill-btn" data-nim="2021004" data-pass="123456" data-nama="Dewi Lestari" onclick="selectDemoAccount('2021004', '123456', 'Dewi Lestari', this)" title="Pilih akun Dewi Lestari">
+          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+          <div class="demo-pill-info">
+            <div class="demo-pill-name">Dewi Lestari</div>
+            <div class="demo-pill-nim">2021004</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+  <a class="btn btn-ghost" href="../index.html"><i class="fa-solid fa-arrow-up-right-from-square"></i> Portal Utama</a>
+</div>
+
+<!-- ============================= HOME ============================= -->
+<div id="page-home" class="page">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-name" id="user-name">–</div>
+      <div class="topbar-nim"  id="user-nim">–</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="../index.html" class="btn-topbar-nav" title="Kembali ke Halaman Awal / Portal Utama">
+        <i class="fa-solid fa-house"></i>
+        <span>Halaman Awal</span>
+      </a>
+      <button id="btn-logout" class="btn-logout" onclick="doLogout()" title="Keluar dari akun dan ganti akun mahasiswa lain">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Keluar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('absensi')"><i class="fa-solid fa-fingerprint"></i> Presensi</button>
+    <button class="tab-btn"        onclick="switchTab('riwayat')"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</button>
+  </div>
+
+  <!-- ============ TAB ABSENSI (MINIMALIST & CLEAN LOOK) ============ -->
+  <div id="tab-absensi" class="tab-content active">
+
+    <!-- Card 1: Status & Tahap Presensi (Minimalist Header) -->
+    <div class="card" style="padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(22,19,17,0.06);">
+        <div style="color:var(--text-muted);font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px;">
+          <i class="fa-regular fa-calendar" style="color:var(--gold-dark);font-size:13px;"></i>
+          <span id="tanggal-hari">–</span>
+        </div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--obsidian);font-family:ui-monospace, monospace;display:flex;align-items:center;gap:6px;background:#faf8f5;border:1px solid var(--border);padding:3px 10px;border-radius:6px;">
+          <i class="fa-regular fa-clock" style="color:var(--gold-dark);font-size:12px;"></i>
+          <span id="jam-sekarang">–</span>
+        </div>
+      </div>
+
+      <!-- Segmented Stepper -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div id="step-pill-masuk" class="step-pill active" style="padding:8px 10px;">
+          <div class="step-badge-num" id="step-icon-masuk" style="width:22px;height:22px;font-size:10px;">1</div>
+          <div style="min-width:0;line-height:1.2;">
+            <div style="font-size:11px;font-weight:700;color:var(--obsidian);font-family:'Cinzel',serif;">Presensi Masuk</div>
+            <span style="font-size:9.5px;color:var(--text-muted);" id="step-time-masuk">Belum terekam</span>
+          </div>
+        </div>
+
+        <div id="step-pill-pulang" class="step-pill pending" style="padding:8px 10px;">
+          <div class="step-badge-num" id="step-icon-pulang" style="width:22px;height:22px;font-size:10px;">2</div>
+          <div style="min-width:0;line-height:1.2;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:'Cinzel',serif;">Presensi Pulang</div>
+            <span style="font-size:9.5px;color:var(--text-soft);" id="step-time-pulang">Menunggu masuk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Lokasi Presensi (Minimalist Map & Compact HUD) -->
+    <div class="card" style="padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:13px;"><i class="fa-solid fa-location-dot" style="color:var(--gold-dark);margin-right:6px;"></i>Lokasi Presensi</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="refreshLokasi()" style="padding:4px 10px;font-size:11px;border-radius:6px;gap:5px;">
+          <i class="fa-solid fa-arrows-rotate"></i> Perbarui
+        </button>
+      </div>
+
+      <div id="map" style="height:150px;margin-bottom:10px;"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:11.5px;background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:8px 12px;">
+        <span id="status-lokasi-text">–</span>
+        <span id="koordinat-text" style="color:var(--text-soft);font-family:monospace;font-size:10.5px;">Mendeteksi…</span>
+      </div>
+      <span id="jarak-text" style="display:none;">–</span>
+    </div>
+
+    <!-- Card 3: Verifikasi Swafoto (Minimalist Biometric) -->
+    <div class="card" style="padding:14px 16px;margin-bottom:14px;">
+      <h3 style="margin-bottom:10px;font-size:13px;"><i class="fa-solid fa-camera" style="color:var(--gold-dark);margin-right:6px;"></i>Verifikasi Swafoto</h3>
+
+      <!-- Preview foto -->
+      <div id="foto-preview-wrap" class="foto-preview-wrap" style="display:none;margin-bottom:10px;">
+        <img id="foto-preview" src="" alt="Preview foto" style="max-height:160px;object-fit:cover;" />
+        <button type="button" class="btn-hapus-foto" onclick="hapusFoto()"><i class="fa-solid fa-trash-can"></i> Hapus</button>
+      </div>
+
+      <!-- Placeholder -->
+      <div id="foto-placeholder" class="foto-placeholder" style="height:90px;margin-bottom:10px;">
+        <span style="font-size:12px;color:var(--text-muted);"><i class="fa-solid fa-user-circle" style="margin-right:6px;font-size:16px;color:var(--gold-dark);"></i>Belum ada foto</span>
+      </div>
+
+      <!-- Kamera live -->
+      <div id="kamera-wrap" class="kamera-wrap" style="display:none;margin-bottom:10px;">
+        <video id="video-stream" autoplay playsinline muted style="max-height:180px;"></video>
+        <div class="kamera-controls" style="margin-top:8px;">
+          <button type="button" class="btn btn-danger btn-sm" onclick="tutupKamera()"><i class="fa-solid fa-xmark"></i> Batal</button>
+          <button type="button" class="btn btn-success btn-sm" onclick="ambilFoto()"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
+        </div>
+      </div>
+
+      <canvas id="canvas-foto" style="display:none"></canvas>
+
+      <!-- Tombol aksi foto -->
+      <div id="foto-actions" class="foto-actions">
+        <button type="button" class="btn" onclick="bukaKamera()"><i class="fa-solid fa-camera"></i> Buka Kamera</button>
+        <label class="btn-upload-label" onclick="document.getElementById('input-foto').click()">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i> Unggah Berkas
+        </label>
+        <input class="input-file-hidden" type="file" id="input-foto" accept="image/*" onchange="uploadFotoFile(event)" />
+      </div>
+    </div>
+
+    <!-- Alert & Tombol Absen -->
+    <div id="absensi-alert" class="alert"></div>
+    <button class="btn btn-primary btn-full btn-absen" id="btn-absen" onclick="doAbsensi()">
+      <i class="fa-solid fa-arrow-right-to-bracket" id="btn-absen-icon"></i>
+      <span id="btn-absen-text">Konfirmasi Presensi Masuk</span>
+    </button>
+
+    <!-- Tombol Izin & Form Izin Tidak Hadir (Simple & Minimalis) -->
+    <div class="izin-section-wrap" style="margin: 0 0 14px;">
+      <button type="button" class="btn btn-secondary btn-full btn-izin" id="btn-toggle-izin" onclick="toggleFormIzin()">
+        <i class="fa-regular fa-calendar-minus" style="color:var(--gold-dark);font-size:14px;"></i>
+        <span id="btn-izin-label">Izin Tidak Hadir</span>
+      </button>
+
+      <!-- Panel Form Izin Tidak Hadir -->
+      <div id="panel-form-izin" class="card-izin-form" style="display:none;margin-top:10px;padding:14px 16px;background:#ffffff;border:1.5px solid var(--gold-border);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);text-align:left;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(212,163,98,0.25);">
+          <div style="font-size:12px;font-weight:700;color:var(--obsidian);font-family:'Cinzel',serif;display:flex;align-items:center;gap:6px;">
+            <i class="fa-solid fa-file-pen" style="color:var(--gold-dark);"></i>
+            <span>Pengajuan Izin Tidak Hadir</span>
+          </div>
+          <button type="button" onclick="toggleFormIzin(false)" style="background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:14px;padding:2px 4px;" title="Tutup">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div id="izin-alert" class="alert"></div>
+
+        <!-- 3 Pilihan Izin (Minimalist Pills) -->
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">
+          Pilih Alasan Izin:
+        </label>
+        <div class="izin-pills-wrap" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:12px;">
+          <button type="button" class="izin-pill-btn active" data-kategori="sakit" onclick="selectKategoriIzin('sakit', this)">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>Sakit</span>
+          </button>
+          <button type="button" class="izin-pill-btn" data-kategori="izin" onclick="selectKategoriIzin('izin', this)">
+            <i class="fa-solid fa-clipboard-user"></i>
+            <span>Keperluan</span>
+          </button>
+          <button type="button" class="izin-pill-btn" data-kategori="dispensasi" onclick="selectKategoriIzin('dispensasi', this)">
+            <i class="fa-solid fa-building-columns"></i>
+            <span>Dispensasi</span>
+          </button>
+        </div>
+
+        <!-- Form Catatan Keterangan -->
+        <label for="catatan-izin" style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">
+          Catatan / Keterangan:
+        </label>
+        <textarea id="catatan-izin" rows="2" placeholder="Tuliskan keterangan sakit atau istirahat dokter..." style="width:100%;padding:8px 10px;font-size:12.5px;font-family:inherit;border:1.5px solid var(--border);border-radius:var(--radius-sm);outline:none;resize:none;margin-bottom:12px;color:var(--text);background:#faf8f5;"></textarea>
+
+        <!-- Aksi Form Izin -->
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="toggleFormIzin(false)" style="flex:1;padding:8px 12px;font-size:12px;">Batal</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-submit-izin" onclick="submitIzin()" style="flex:2;padding:8px 12px;font-size:12px;">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span id="btn-submit-izin-text">Kirim Izin</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:-6px;margin-bottom:14px;">
+      <a href="../index.html" class="btn btn-ghost" style="display:inline-flex;width:100%;margin:0;font-size:12px;padding:10px 14px;">
+        <i class="fa-solid fa-house"></i> Kembali ke Halaman Awal Portal
+      </a>
+    </div>
+
+  </div><!-- /tab-absensi -->
+
+  <!-- ============ TAB RIWAYAT ============ -->
+  <div id="tab-riwayat" class="tab-content">
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between">
+      <h3 style="margin:0"><i class="fa-solid fa-table-list" style="color:var(--primary);margin-right:8px"></i> Riwayat Presensi</h3>
+      <button class="btn btn-secondary btn-sm" onclick="loadRiwayat()"><i class="fa-solid fa-arrows-rotate"></i> Perbarui</button>
+    </div>
+    <div id="riwayat-list">
+      <div class="empty-state">Tekan "Perbarui" untuk menampilkan data</div>
+    </div>
+
+    <div style="text-align:center;margin-top:14px;margin-bottom:14px;">
+      <a href="../index.html" class="btn btn-ghost" style="display:inline-flex;width:100%;margin:0;font-size:12px;padding:10px 14px;">
+        <i class="fa-solid fa-house"></i> Kembali ke Halaman Awal Portal
+      </a>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- UNIVERSAL LUXURY MODAL POPUP -->
+<div id="modal-popup-backdrop" class="modal-backdrop" style="display:none;">
+  <div class="modal-popup-card">
+    <div id="modal-popup-icon" class="modal-icon-circle success">
+      <i class="fa-solid fa-circle-check" id="modal-icon-fa"></i>
+    </div>
+    <h3 id="modal-popup-title" class="modal-title">PRESENSI BERHASIL</h3>
+    <p id="modal-popup-subtitle" class="modal-subtitle">Detail konfirmasi presensi</p>
+    
+    <div id="modal-popup-body" class="modal-body-content"></div>
+
+    <div class="modal-actions-wrap" id="modal-actions-wrap">
+      <button class="btn btn-primary btn-full" id="modal-btn-confirm" onclick="closeModalPopup()">Mengerti</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// DEMO ACCOUNT SWITCHER (Inline Instant Execution)
+// ============================================
+function selectDemoAccount(nim, password, nama, btn) {
+  try {
+    var nimInput = document.getElementById('nim');
+    var passInput = document.getElementById('password');
+    if (nimInput) nimInput.value = nim;
+    if (passInput) passInput.value = password;
+
+    var allPills = document.querySelectorAll('.demo-pill-btn');
+    allPills.forEach(function(pill) {
+      pill.classList.remove('active');
+      var icon = pill.querySelector('.demo-pill-icon i');
+      if (icon) icon.className = 'fa-solid fa-user';
+    });
+
+    var targetBtn = btn;
+    if (!targetBtn && nim) {
+      targetBtn = document.querySelector('.demo-pill-btn[data-nim="' + nim + '"]');
+    }
+    if (targetBtn) {
+      targetBtn.classList.add('active');
+      var actIcon = targetBtn.querySelector('.demo-pill-icon i');
+      if (actIcon) actIcon.className = 'fa-solid fa-user-check';
+    }
+
+    var alertEl = document.getElementById('login-alert');
+    if (alertEl) {
+      alertEl.style.display = 'none';
+      alertEl.className = 'alert';
+      alertEl.textContent = '';
+    }
+
+    if (typeof showToast === 'function') {
+      showToast('Akun demo ' + (nama || nim) + ' (' + nim + ') aktif. Silakan tekan Masuk.', 'info', 2200);
+    }
+  } catch (err) {
+    console.error('Error selectDemoAccount:', err);
+  }
+}
+
+function resetDemoAccountPills(defaultNim) {
+  if (!defaultNim) defaultNim = '2021001';
+  document.querySelectorAll('.demo-pill-btn').forEach(function(b) {
+    var isDef = (b.getAttribute('data-nim') === defaultNim);
+    b.classList.toggle('active', isDef);
+    var icon = b.querySelector('.demo-pill-icon i');
+    if (icon) {
+      icon.className = isDef ? 'fa-solid fa-user-check' : 'fa-solid fa-user';
+    }
+  });
+}
+
+// Attach event listeners directly on DOMContentLoaded to guarantee click handling
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.demo-pill-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var nim  = this.getAttribute('data-nim');
+      var pass = this.getAttribute('data-pass') || '123456';
+      var nama = this.getAttribute('data-nama') || 'Mahasiswa';
+      selectDemoAccount(nim, pass, nama, this);
+    });
+  });
+});
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/app.js?v=20261029_izin01"></script>
+</body>
+</html>

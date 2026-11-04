@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rekapitulasi Presensi Eksekutif – Smart Attendance</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #faf8f5;
+      --card-bg: #ffffff;
+      --card-border: rgba(212, 163, 98, 0.35);
+      --border-subtle: rgba(212, 163, 98, 0.28);
+      --text: #171412;
+      --text-muted: #6b625b;
+      --text-soft: #948b84;
+      --obsidian: #141210;
+      --gold-primary: #d4a362;
+      --gold-glow: #dfa86a;
+      --gold-dark: #b8853b;
+      --gold-soft-bg: rgba(212, 163, 98, 0.08);
+      --sage-corp: #1e5a40;
+      --sage-soft-bg: #edf6f1;
+      --sage-border: #c8e3d4;
+      --berry-corp: #9c2436;
+      --berry-soft-bg: #faedf0;
+      --berry-border: #ebd0d6;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #faf8f5 60%, #f4efe6 100%);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      padding: 36px 24px;
+    }
+
+    .admin-container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .admin-header {
+      background: #ffffff;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: 0 8px 30px rgba(20, 18, 16, 0.06);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: var(--obsidian);
+      border: 1.5px solid var(--gold-primary);
+      color: var(--gold-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      box-shadow: 0 6px 18px rgba(20, 18, 16, 0.15);
+    }
+
+    .header-title h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--obsidian);
+      letter-spacing: 0.05em;
+    }
+
+    .header-title p {
+      font-size: 0.8rem;
+      color: var(--gold-dark);
+      margin-top: 3px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1.5px solid var(--card-border);
+      color: var(--obsidian);
+      box-shadow: 0 2px 6px rgba(20, 18, 16, 0.04);
+    }
+
+    .btn-outline:hover {
+      background: var(--gold-soft-bg);
+      border-color: var(--gold-primary);
+      color: var(--gold-dark);
+    }
+
+    .btn-luxury {
+      background: linear-gradient(135deg, #dfa86a 0%, #c7924d 100%);
+      color: #14110e;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 4px 18px rgba(199, 146, 77, 0.38);
+      border: 1px solid rgba(255, 235, 205, 0.4);
+    }
+
+    .btn-luxury:hover {
+      background: linear-gradient(135deg, #e8b377 0%, #d49c55 100%);
+      box-shadow: 0 6px 22px rgba(199, 146, 77, 0.48);
+      transform: translateY(-1px);
+    }
+
+    /* Main Card */
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 30px rgba(20, 18, 16, 0.06);
+      overflow: hidden;
+    }
+
+    /* Filter Toolbar */
+    .toolbar {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: #faf8f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .input-field {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      outline: none;
+      background: #ffffff;
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(212, 163, 98, 0.2);
+    }
+
+    #total-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--obsidian);
+      margin-left: auto;
+      background: var(--gold-soft-bg);
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Table */
+    .table-responsive {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(212, 163, 98, 0.3) transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: rgba(212, 163, 98, 0.3);
+      border-radius: 999px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: #faf8f5;
+      padding: 14px 20px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--obsidian);
+      border-bottom: 1.5px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(212, 163, 98, 0.18);
+      font-size: 0.84rem;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background-color: #fdfbf7; }
+
+    .person-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tbl-foto {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      border: 1.5px solid var(--border-subtle);
+    }
+
+    .tbl-foto-ph {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--gold-soft-bg);
+      border: 1.5px solid var(--card-border);
+      color: var(--gold-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .person-name { font-weight: 700; color: var(--obsidian); }
+    .person-nim {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: ui-monospace, monospace;
+      background: #faf8f5;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-hadir {
+      background: var(--sage-soft-bg);
+      color: var(--sage-corp);
+      border: 1px solid var(--sage-border);
+    }
+
+    .badge-terlambat {
+      background: var(--berry-soft-bg);
+      color: var(--berry-corp);
+      border: 1px solid var(--berry-border);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .badge-hadir .dot { background: var(--sage-corp); }
+    .badge-terlambat .dot { background: var(--berry-corp); }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+  
+  <div class="admin-header">
+    <div class="header-left">
+      <div class="brand-icon">
+        <i class="fa-solid fa-clipboard-user"></i>
+      </div>
+      <div class="header-title">
+        <h1>Smart Attendance – Audit Presensi</h1>
+        <p>Rekapitulasi resmi presensi mahasiswa dan personel</p>
+      </div>
+    </div>
+    
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="loadAdmin()">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>Muat Ulang</span>
+      </button>
+      <a href="index.html" class="btn btn-luxury">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Kembali ke Absensi</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <div class="filter-group">
+        <input type="text" id="filter-nama" class="input-field" placeholder="Cari nama atau NIM…" oninput="filterTabel()" style="min-width:220px;" />
+        <input type="date" id="filter-tanggal" class="input-field" onchange="filterTabel()" />
+        <select id="filter-status" class="input-field" onchange="filterTabel()">
+          <option value="">Semua Status Presensi</option>
+          <option value="hadir">Tepat Waktu (Hadir)</option>
+          <option value="terlambat">Terlambat</option>
+        </select>
+      </div>
+
+      <span id="total-badge">Memuat data…</span>
+    </div>
+
+    <div class="table-responsive">
+      <table id="tabel-absensi">
+        <thead>
+          <tr>
+            <th style="width:50px;">No</th>
+            <th>Personel Mahasiswa</th>
+            <th>Waktu Presensi</th>
+            <th>Status</th>
+            <th>Koordinat Lokasi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-absensi">
+          <tr>
+            <td colspan="5" style="text-align:center;color:var(--text-soft);padding:36px;">
+              <i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>
+              Menghubungkan ke API presensi…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = '../api';
+let allData = [];
+
+// Muat data saat halaman dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  loadAdmin(false);
+});
+
+async function loadAdmin(promptUser = true) {
+  const tbody = document.getElementById('tbody-absensi');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>Memuat data presensi…</td></tr>';
+
+  try {
+    let userId = '0';
+    if (promptUser) {
+      const p = prompt('Masukkan user_id spesifik (kosongkan untuk menampilkan seluruh mahasiswa):');
+      if (p === null) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-soft);padding:36px;">Operasi dibatalkan</td></tr>';
+        return;
+      }
+      userId = p.trim() || '0';
+    }
+
+    const res = await fetch(`${API_BASE}/riwayat.php?user_id=${encodeURIComponent(userId)}`);
+    const json = await res.json();
+
+    if (json.status !== 'success' || !json.data || !json.data.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-soft);padding:36px;"><i class="fa-regular fa-folder-open" style="font-size:1.8rem;margin-bottom:8px;display:block;"></i>Belum ada data presensi yang terekam</td></tr>';
+      document.getElementById('total-badge').textContent = 'Total: 0 Catatan';
+      return;
+    }
+
+    allData = json.data;
+    filterTabel();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--berry-corp);padding:36px;">Gagal memuat data: ${e.message}</td></tr>`;
+  }
+}
+
+function filterTabel() {
+  const cari    = (document.getElementById('filter-nama').value || '').toLowerCase().trim();
+  const tgl     = document.getElementById('filter-tanggal').value;
+  const status  = document.getElementById('filter-status').value;
+
+  const filtered = allData.filter(r => {
+    const matchNama   = !cari || (r.nama && r.nama.toLowerCase().includes(cari)) || (r.nim && r.nim.toLowerCase().includes(cari));
+    const matchTgl    = !tgl  || (r.waktu && r.waktu.startsWith(tgl));
+    const matchStatus = !status || r.status === status;
+    return matchNama && matchTgl && matchStatus;
+  });
+
+  document.getElementById('total-badge').textContent = `Total: ${filtered.length} Catatan`;
+
+  const tbody = document.getElementById('tbody-absensi');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-soft);padding:36px;">Tidak ada catatan yang sesuai dengan filter pencarian</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const waktu = new Date(r.waktu).toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+    const isHadir = r.status === 'hadir';
+    const badgeCls = isHadir ? 'badge-hadir' : 'badge-terlambat';
+    const fotoEl = r.foto
+      ? `<img class="tbl-foto" src="../${r.foto}" alt="Selfie" onerror="this.outerHTML='<span class=\\'tbl-foto-ph\\'><i class=\\'fa-solid fa-user\\'></i></span>'" />`
+      : `<span class="tbl-foto-ph"><i class="fa-solid fa-user"></i></span>`;
+
+    return `
+      <tr>
+        <td style="color:var(--text-soft);font-variant-numeric:tabular-nums;">${i + 1}</td>
+        <td>
+          <div class="person-row">
+            ${fotoEl}
+            <div>
+              <div class="person-name">${r.nama || 'Tanpa Nama'}</div>
+              <div class="person-nim">${r.nim || '-'}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-variant-numeric:tabular-nums;font-weight:600;">
+          <i class="fa-regular fa-clock" style="color:var(--text-soft);margin-right:4px;"></i>${waktu}
+        </td>
+        <td>
+          <span class="badge ${badgeCls}">
+            <span class="dot"></span>
+            ${(r.status || '').toUpperCase()}
+          </span>
+        </td>
+        <td style="font-family:monospace;font-size:0.75rem;color:var(--text-muted);">
+          ${parseFloat(r.latitude || 0).toFixed(5)}, ${parseFloat(r.longitude || 0).toFixed(5)}
+        </td>
+      </tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
