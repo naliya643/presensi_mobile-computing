@@ -511,11 +511,21 @@ $conn->close();
       </form>
     </div>
 
-    <!-- BACK TO MAIN PAGE -->
-    <div class="auth-footer">
-      <a href="../index.html" class="back-home-link">
-        <i class="fa-solid fa-arrow-left"></i>
-        <span>Kembali ke Halaman Utama</span>
+    <!-- FOOTER LINKS -->
+    <div class="auth-footer" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;align-items:center;font-size:0.8rem;">
+      <a href="../frontend/index.html" class="back-home-link">
+        <i class="fa-solid fa-mobile-screen"></i>
+        <span>Presensi</span>
+      </a>
+      <span style="color:var(--text-soft);font-size:0.75rem;">•</span>
+      <a href="../index.html#petunjuk" class="back-home-link">
+        <i class="fa-solid fa-circle-question"></i>
+        <span>Petunjuk Penggunaan</span>
+      </a>
+      <span style="color:var(--text-soft);font-size:0.75rem;">•</span>
+      <a href="../index.html#tentang" class="back-home-link">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Tentang Kami</span>
       </a>
     </div>
 

@@ -1,52 +1,17 @@
-# Frontend Simulasi – Smart Attendance
+# Frontend Presensi – Smart Attendance System
 
-Folder ini adalah simulasi web (mobile-first) untuk menguji sistem absensi
-sebelum diimplementasikan di Kodular.
+Modul antarmuka web (mobile-first) untuk sistem presensi online berbasis Geofencing GPS dan Swafoto Kamera.
 
-## Cara Akses
+## Akses Cepat
 
-Pastikan XAMPP berjalan, lalu buka di browser:
+- `http://localhost/absensi/frontend/index.html` : Halaman Presensi Mahasiswa / Karyawan (Login, Verifikasi Lokasi, Kamera Selfie, Presensi Masuk & Pulang, Form Izin, dan Riwayat).
+- `http://localhost/absensi/frontend/admin.html` : Halaman Rekapitulasi dan Audit Data Presensi.
 
-```
-http://localhost/absensi/frontend/index.html   ← Halaman utama (login + absensi)
-http://localhost/absensi/frontend/admin.html   ← Rekap data absensi
-```
+## Fitur Utama
 
-## Fitur
-
-| Fitur | Keterangan |
-|---|---|
-| Login | NIM + password (MD5), sesuai API login.php |
-| Deteksi GPS | Menggunakan Geolocation API browser |
-| Peta Leaflet | Menampilkan posisi Anda & kampus + radius 100m |
-| Kamera Selfie | Buka kamera langsung dari browser (getUserMedia) |
-| Upload Foto | Alternatif pilih foto dari galeri |
-| Absensi | POST ke absensi.php dengan koordinat + foto base64 |
-| Riwayat | GET dari riwayat.php, tampil 30 data terakhir |
-| Jam Real-time | Update setiap detik |
-
-## Catatan Penting
-
-1. **Koordinat kampus** – Sesuaikan `KAMPUS_LAT` dan `KAMPUS_LNG` di `js/app.js`
-   agar sama dengan nilai di `api/absensi.php`.
-
-2. **HTTPS untuk kamera & GPS** – Browser modern memerlukan HTTPS atau `localhost`
-   untuk mengakses kamera dan GPS. Di XAMPP lokal (`localhost`) sudah aman.
-
-3. **Izin browser** – Saat pertama kali, browser akan meminta izin lokasi dan kamera.
-   Klik "Izinkan".
-
-4. **Simulasi lokasi** – Jika ingin menguji tanpa berada di kampus, gunakan
-   DevTools Chrome → tab Sensors → Override geolocation, masukkan koordinat kampus.
-
-## Struktur File
-
-```
-frontend/
-├── index.html      ← Halaman utama (login + absensi + riwayat)
-├── admin.html      ← Halaman rekap admin
-├── css/
-│   └── style.css   ← Semua styling (mobile-first)
-└── js/
-    └── app.js      ← Logika: login, GPS, kamera, absensi, riwayat
-```
+- **Autentikasi Pengguna**: Login akun dengan NIM dan kata sandi.
+- **Deteksi Geofence GPS**: Peta interaktif Leaflet untuk memvalidasi posisi pengguna terhadap radius kampus.
+- **Kamera Swafoto**: Pengambilan foto verifikasi wajah langsung melalui kamera perangkat.
+- **Dua Sesi Presensi**: Mendukung presensi masuk dan presensi pulang bertahap.
+- **Pengajuan Izin**: Formulir permohonan izin (Sakit, Dispensasi, Keperluan) dengan catatan.
+- **Riwayat Real-Time**: Daftar riwayat kehadiran lengkap dengan status waktu dan foto bukti.

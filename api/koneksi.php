@@ -34,17 +34,16 @@ header('Access-Control-Allow-Methods: POST, GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
 function getConnection() {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    if ($conn->connect_error) {
-        http_response_code(500);
-        echo json_encode([
-            'status'  => 'error',
-            'message' => 'Koneksi database gagal: ' . $conn->connect_error
-        ]);
-        exit();
+    try {
+        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        if ($conn->connect_error) {
+            sendResponse('error', 'Koneksi database MySQL gagal. Pastikan modul MySQL di XAMPP Control Panel sudah dalam status START (Running).');
+        }
+        $conn->set_charset('utf8mb4');
+        return $conn;
+    } catch (Throwable $e) {
+        sendResponse('error', 'Koneksi database MySQL belum aktif atau terputus. Mohon pastikan modul MySQL di XAMPP Control Panel sudah dinyalakan (tekan tombol Start).');
     }
-    $conn->set_charset('utf8mb4');
-    return $conn;
 }
 
 function sendResponse($status, $message, $data = null) {

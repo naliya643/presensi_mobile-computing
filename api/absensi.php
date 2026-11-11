@@ -197,15 +197,20 @@ if ($tipe === 'pulang') {
     $waktuPulang = date('Y-m-d H:i:s');
     $statusPulang= 'pulang';
 
-    $upd = $conn->prepare("
-        UPDATE absensi 
-        SET waktu_pulang = ?, latitude_pulang = ?, longitude_pulang = ?, foto_pulang = ?, status_pulang = ?
-        WHERE id = ?
-    ");
-    $upd->bind_param('sddssi', $waktuPulang, $latitude, $longitude, $fotoPath, $statusPulang, $absensiId);
-    $upd->execute();
-    $upd->close();
-    $conn->close();
+    try {
+        $upd = $conn->prepare("
+            UPDATE absensi 
+            SET waktu_pulang = ?, latitude_pulang = ?, longitude_pulang = ?, foto_pulang = ?, status_pulang = ?
+            WHERE id = ?
+        ");
+        $upd->bind_param('sddssi', $waktuPulang, $latitude, $longitude, $fotoPath, $statusPulang, $absensiId);
+        $upd->execute();
+        $upd->close();
+        $conn->close();
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn) @$conn->close();
+        sendResponse('error', 'Gagal memperbarui presensi pulang: ' . $e->getMessage());
+    }
 
     sendResponse('success', 'Presensi pulang berhasil dicatat. Terima kasih atas kehadirannya hari ini!', [
         'tipe'         => 'pulang',
@@ -232,14 +237,19 @@ if ($tipe === 'pulang') {
         }
     }
 
-    $stmt = $conn->prepare(
-        "INSERT INTO absensi (user_id, latitude, longitude, foto, status) VALUES (?, ?, ?, ?, ?)"
-    );
-    $stmt->bind_param('iddss', $userId, $latitude, $longitude, $fotoPath, $status);
-    $stmt->execute();
-    $insertId = $conn->insert_id;
-    $stmt->close();
-    $conn->close();
+    try {
+        $stmt = $conn->prepare(
+            "INSERT INTO absensi (user_id, latitude, longitude, foto, status) VALUES (?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param('iddss', $userId, $latitude, $longitude, $fotoPath, $status);
+        $stmt->execute();
+        $insertId = $conn->insert_id;
+        $stmt->close();
+        $conn->close();
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn) @$conn->close();
+        sendResponse('error', 'Gagal mencatat presensi masuk: ' . $e->getMessage());
+    }
 
     sendResponse('success', 'Presensi masuk berhasil dicatat', [
         'tipe'        => 'masuk',

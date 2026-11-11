@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Smart Attendance – Simulasi</title>
+  <title>Smart Attendance – Presensi Mobile</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     /* =============================================
@@ -46,6 +46,7 @@
       color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
     /* =============================================
@@ -57,16 +58,28 @@
     /* =============================================
        LOGIN (Corporate Executive View)
     ============================================= */
+    #page-login {
+      width: 100%;
+      min-height: 100vh;
+    }
     #page-login.active {
       display: flex !important;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      width: 100%;
       padding: 32px 16px;
       background: radial-gradient(circle at 50% 15%, #ffffff 0%, #faf8f5 60%, #f4efe6 100%);
+      box-sizing: border-box;
     }
-    .app-header { text-align: center; color: var(--text); margin-bottom: 28px; }
+    .app-header {
+      text-align: center;
+      color: var(--text);
+      margin: 0 auto 24px;
+      width: 100%;
+      max-width: 420px;
+    }
     .app-logo {
       width: 60px;
       height: 60px;
@@ -82,75 +95,74 @@
       color: var(--gold-glow);
     }
     .app-header h1 {
-      font-family: 'Cinzel', serif;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: -0.01em;
       color: var(--obsidian);
     }
     .app-header p {
-      font-size: 13px;
-      color: var(--gold-dark);
-      margin-top: 5px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
 
     /* =============================================
-       CARD (Non-flat Luxury Raised Container)
+       CARD (Clean Minimalist Raised Container)
     ============================================= */
     .card {
       background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 12px;
       transition: all 0.2s ease;
     }
     #page-login .card {
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      margin: 0 auto;
       background: #ffffff;
-      box-shadow: 0 12px 36px rgba(20, 18, 16, 0.08);
-      border: 1.5px solid var(--gold-border);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+      border: 1px solid #ebe8e2;
+      border-radius: 14px;
+      padding: 22px 20px;
+      box-sizing: border-box;
     }
     #page-login .card h2 {
-      font-family: 'Cinzel', serif;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: -0.01em;
       color: var(--obsidian);
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0eee9;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     #page-login .card h2::before {
       content: '';
-      width: 4px;
-      height: 18px;
-      background: linear-gradient(180deg, var(--gold-glow), var(--gold-dark));
+      width: 3px;
+      height: 16px;
+      background: var(--primary);
       border-radius: 2px;
       display: inline-block;
     }
     .card h3 {
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
       color: var(--obsidian);
-      margin-bottom: 14px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .card h3 i {
-      color: var(--gold-primary);
+      color: var(--primary);
     }
 
     /* Alert Banner */
@@ -235,117 +247,213 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
       border: none;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 600;
       font-family: inherit;
+      letter-spacing: -0.01em;
+      text-transform: none;
       cursor: pointer;
-      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all .15s ease;
       text-decoration: none;
     }
-    .btn:active { transform: scale(.98); }
+    .btn:active { transform: scale(.99); }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
     
     .btn-primary {
-      background: linear-gradient(135deg, #dfa86a 0%, #c7924d 100%);
-      color: #14110e;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      box-shadow: 0 4px 18px rgba(199, 146, 77, 0.38);
-      border: 1px solid rgba(255, 235, 205, 0.4);
+      background: #18181b;
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #18181b;
     }
     .btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #e8b377 0%, #d49c55 100%);
-      box-shadow: 0 6px 22px rgba(199, 146, 77, 0.48);
+      background: #27272a;
+      border-color: #27272a;
+      color: #ffffff;
       transform: translateY(-1px);
     }
 
     .btn-secondary {
       background: #ffffff;
-      border: 1.5px solid var(--border);
-      color: var(--obsidian);
+      border: 1px solid #e4e2dd;
+      color: #27272a;
       font-weight: 600;
-      box-shadow: var(--shadow-sm);
+      letter-spacing: -0.01em;
+      text-transform: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
     .btn-secondary:hover:not(:disabled) {
-      background: var(--gold-soft-bg);
-      border-color: var(--gold-primary);
-      color: var(--gold-dark);
+      background: #f8f7f5;
+      border-color: #d8d4cc;
+      color: #09090b;
     }
 
     .btn-success {
-      background: linear-gradient(135deg, #23694b, #174c35);
+      background: #16a34a;
       color: #ffffff;
-      box-shadow: 0 3px 12px rgba(35, 105, 75, 0.3);
-      font-weight: 700;
+      font-weight: 600;
+      border: 1px solid #15803d;
     }
     .btn-danger {
-      background: linear-gradient(135deg, #aa2c3f, #831b2b);
+      background: #dc2626;
       color: #ffffff;
-      box-shadow: 0 3px 12px rgba(170, 44, 63, 0.3);
-      font-weight: 700;
+      font-weight: 600;
+      border: 1px solid #b91c1c;
     }
     .btn-ghost {
       background: #ffffff;
-      border: 1.5px solid var(--border);
-      color: var(--obsidian);
-      margin-top: 16px;
+      border: 1px solid #e4e2dd;
+      color: #52525b;
+      margin-top: 12px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.01em;
     }
     .btn-ghost:hover {
-      background: var(--gold-soft-bg);
-      border-color: var(--gold-primary);
-      color: var(--gold-dark);
+      background: #f4f4f5;
+      color: #18181b;
     }
     .btn-full { width: 100%; }
-    .btn-sm   { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+    .btn-sm   { padding: 6px 12px; font-size: 11.5px; border-radius: 6px; }
 
     .btn-absen {
-      font-size: 14px;
-      padding: 15px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 10px;
-      background: linear-gradient(135deg, #dfa86a 0%, #c7924d 100%);
-      color: #14110e;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      box-shadow: 0 6px 20px rgba(199, 146, 77, 0.4);
-      border: 1px solid rgba(255, 240, 215, 0.5);
+      font-size: 13.5px;
+      padding: 12px 18px;
+      border-radius: 9px;
+      margin-bottom: 8px;
+      background: #18181b;
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid #18181b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-absen:last-child {
+      margin-bottom: 0;
     }
     .btn-absen:hover:not(:disabled) {
-      background: linear-gradient(135deg, #e8b377 0%, #d49c55 100%);
-      box-shadow: 0 8px 26px rgba(199, 146, 77, 0.5);
-      transform: translateY(-2px);
-    }
-    .btn-izin {
-      background: #ffffff;
-      border: 1.5px solid var(--gold-border);
-      color: var(--obsidian);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      box-shadow: var(--shadow-sm);
-      padding: 12px 16px;
-      font-size: 13px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .btn-izin:hover:not(:disabled) {
-      background: var(--gold-soft-bg);
-      border-color: var(--gold-primary);
-      color: var(--gold-dark);
+      background: #27272a;
+      border-color: #27272a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       transform: translateY(-1px);
     }
+    .btn-izin {
+      background: #fefce8;
+      border: 1.5px solid #fef08a;
+      color: #713f12;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      box-shadow: 0 1px 3px rgba(202, 138, 4, 0.08);
+      padding: 11px 16px;
+      font-size: 12.5px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 9px;
+    }
+    .btn-izin i {
+      color: #a16207;
+      font-size: 12.5px;
+      transition: color 0.15s ease;
+    }
+    .btn-izin:hover:not(:disabled) {
+      background: #fef9c3;
+      border-color: #facc15;
+      color: #422006;
+      box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
+      transform: translateY(-1px);
+    }
+    .btn-izin:hover:not(:disabled) i {
+      color: #713f12;
+    }
+    .status-complete-pill {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 9px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      cursor: default;
+      margin-bottom: 0;
+    }
     .card-izin-form {
-      animation: slideDown 0.22s ease forwards;
+      margin-top: 10px;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid #e4e2dd;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      text-align: left;
+      animation: slideDown 0.2s ease forwards;
     }
     @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-8px); }
+      from { opacity: 0; transform: translateY(-6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    .btn-close-form {
+      background: none;
+      border: none;
+      color: #71717a;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+    }
+    .field-label-mini {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+    }
+    .form-textarea-mini {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      border: 1px solid #e4e2dd;
+      border-radius: 7px;
+      outline: none;
+      resize: none;
+      margin-bottom: 10px;
+      color: #18181b;
+      background: #faf9f7;
+    }
+    .form-textarea-mini:focus {
+      background: #ffffff;
+      border-color: #18181b;
+    }
+    .form-actions-inline {
+      display: flex;
+      gap: 8px;
+    }
+    .form-actions-inline .btn {
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 7px;
     }
     .izin-pill-btn {
       display: flex;
@@ -353,135 +461,470 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      padding: 9px 4px;
-      background: #faf8f5;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
+      padding: 8px 6px;
+      background: #faf9f7;
+      border: 1px solid #e5e2db;
+      border-radius: 8px;
+      color: #71717a;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.15s ease;
       font-family: inherit;
     }
     .izin-pill-btn i {
-      font-size: 14px;
-      color: var(--gold-dark);
+      font-size: 13px;
+      color: #71717a;
       transition: color 0.15s ease;
     }
     .izin-pill-btn:hover {
       background: #ffffff;
-      border-color: var(--gold-primary);
-      color: var(--obsidian);
+      border-color: #18181b;
+      color: #18181b;
     }
     .izin-pill-btn.active {
       background: #ffffff;
-      border-color: var(--gold-dark);
-      color: var(--obsidian);
-      box-shadow: 0 2px 8px rgba(184, 133, 59, 0.2);
-      outline: 2px solid rgba(212, 163, 98, 0.4);
+      border-color: #18181b;
+      color: #18181b;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      outline: none;
     }
     .izin-pill-btn.active i {
-      color: var(--gold-primary);
+      color: #18181b;
     }
-    .btn-logout,
-    .btn-topbar-nav {
-      background: rgba(255, 255, 255, 0.08);
-      color: #dfa86a;
-      border: 1px solid rgba(212, 163, 98, 0.45);
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 11.5px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      transition: all .2s;
-    }
-    .btn-logout:hover,
-    .btn-topbar-nav:hover {
-      background: var(--gold-glow);
-      color: #14110e;
-      border-color: var(--gold-glow);
-      transform: translateY(-1px);
-    }
-
     /* =============================================
-       TOPBAR (Deep Obsidian Noir Luxury Header)
+       TOPBAR NAVBAR (Clean Standard Top Navbar)
     ============================================= */
-    .topbar {
-      background: var(--obsidian);
-      border-bottom: 1.5px solid var(--gold-border);
-      color: #ffffff;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .topbar-navbar {
+      background: #ffffff;
+      border-bottom: 1px solid #ebe8e2;
       position: sticky;
       top: 0;
       z-index: 100;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .topbar-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #18181b;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .navbar-divider {
+      width: 1px;
+      height: 20px;
+      background: #e5e2da;
+      flex-shrink: 0;
+    }
+    .navbar-user {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+      min-width: 0;
     }
     .topbar-name {
-      font-family: 'Cinzel', serif;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      color: #ffffff;
+      color: #18181b;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .topbar-nim {
-      font-size: 11px;
-      color: var(--gold-glow);
-      margin-top: 3px;
-      font-weight: 600;
-      font-family: ui-monospace, monospace;
-      letter-spacing: 0.05em;
+      font-size: 10.5px;
+      color: #71717a;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
-    /* =============================================
-       TAB NAV (High-Contrast Segmented Bar)
-    ============================================= */
+    /* Tab Nav inside Navbar */
     .tab-nav {
       display: flex;
-      background: #1c1917;
-      border-bottom: 1px solid rgba(212, 163, 98, 0.25);
-      position: sticky;
-      top: 60px;
-      z-index: 50;
-      padding: 6px 12px;
-      gap: 6px;
+      background: #f4f3f0;
+      border: 1px solid #e4e2dd;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
     }
     .tab-btn {
-      flex: 1;
-      padding: 9px;
+      padding: 6px 14px;
       background: transparent;
       border: none;
       font-size: 12px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.65);
+      font-weight: 500;
+      color: #71717a;
       cursor: pointer;
+      border-radius: 6px;
+      transition: all .15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: #ffffff;
+      color: #18181b;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Navbar Right Actions */
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-topbar-nav {
+      background: #f4f4f5;
+      color: #52525b;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 6px 11px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: all .15s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-topbar-nav:hover {
+      background: #e4e4e7;
+      color: #18181b;
+    }
+    .btn-logout {
+      background: #fff1f2;
+      color: #be123c;
+      border: 1px solid #fecdd3;
+      border-radius: 6px;
+      padding: 6px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all .15s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-logout:hover {
+      background: #ffe4e6;
+      color: #9f1239;
+    }
+
+    /* =============================================
+       MAIN CONTENT CONTAINER
+    ============================================= */
+    .home-main-area {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+    .home-content-card {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border: 12px solid #18181b;
+      border-radius: 42px;
+      box-shadow: 0 25px 65px rgba(20, 18, 16, 0.16), 0 4px 18px rgba(20, 18, 16, 0.08);
+      overflow: hidden;
+      position: relative;
+    }
+    .phone-speaker-notch {
+      width: 52px;
+      height: 4.5px;
+      background: #27272a;
+      border-radius: 3px;
+      margin: 8px auto 2px;
+      display: block;
+    }
+    #tab-absensi { padding: 0; }
+    #tab-riwayat { padding: 18px 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .2s ease; }
+
+    /* Single Card Sections */
+    .card-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f2efe9;
+    }
+    .card-section:last-child {
+      border-bottom: none;
+    }
+    .card-section-actions {
+      background: #faf9f7;
+      padding: 18px 20px;
+    }
+    .card-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .card-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #18181b;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      letter-spacing: -0.01em;
+    }
+    .card-section-title i {
+      color: #71717a;
+      font-size: 13.5px;
+    }
+    .card-date-label {
+      color: #52525b;
+      font-weight: 600;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
+    }
+    .card-date-label i {
+      color: #71717a;
+      font-size: 13px;
+    }
+    .card-clock-badge {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #18181b;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f4f3f0;
+      border: 1px solid #e4e1d8;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .card-clock-badge i {
+      color: #71717a;
+      font-size: 12px;
+    }
+    .section-indicator {
+      font-size: 11px;
+      color: #71717a;
+      font-weight: 500;
+    }
+    .stepper-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .step-pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: #faf9f7;
+      border: 1px solid #ebe8e2;
+      transition: all 0.15s ease;
+      min-width: 0;
+    }
+    .step-pill.active {
+      border-color: #18181b;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+    .step-pill.completed {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+    .step-pill.disabled {
+      border-color: #ebe8e2;
+      background: #faf9f7;
+      opacity: 0.65;
+    }
+    .step-badge-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: #e4e2dd;
+      color: #71717a;
+    }
+    .step-pill.active .step-badge-num {
+      background: #18181b;
+      color: #ffffff;
+    }
+    .step-pill.completed .step-badge-num {
+      background: #16a34a;
+      color: #ffffff;
+    }
+    .step-pill.disabled .step-badge-num {
+      background: #e4e2dd;
+      color: #71717a;
+    }
+    .step-text-wrap {
+      min-width: 0;
+      line-height: 1.25;
+      flex: 1;
+    }
+    .step-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #18181b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .step-desc {
+      font-size: 10.5px;
+      color: #71717a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      margin-top: 1px;
+    }
+    .step-pill.disabled .step-desc {
+      color: #a1a1aa;
+    }
+    #map {
+      height: 135px;
+      border-radius: 10px;
+      border: 1px solid #e4e2dd;
+      margin-bottom: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+    .lokasi-hud-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      background: #faf9f7;
+      border: 1px solid #ebe8e2;
       border-radius: 8px;
-      transition: all .2s ease;
+      padding: 7px 12px;
+      margin-top: 8px;
+      color: #18181b;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .foto-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .foto-thumb-slot {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+    }
+    .foto-placeholder-mini {
+      width: 52px;
+      height: 52px;
+      margin: 0;
+      border-radius: 10px;
+      border: 1.5px dashed #d4d0c5;
+      background: #faf9f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a19d93;
+    }
+    .foto-placeholder-mini i {
+      font-size: 24px;
+      opacity: 0.85;
+    }
+    .foto-preview-mini {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      margin: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #18181b;
+    }
+    .foto-preview-mini img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .btn-hapus-foto-mini {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9.5px;
+      border-radius: 50%;
+      background: rgba(20, 18, 16, 0.85);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .foto-actions-group {
+      display: flex;
+      flex: 1;
+      gap: 8px;
+      margin: 0;
+    }
+    .foto-actions-group .btn {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
-    .tab-btn.active {
-      background: linear-gradient(135deg, #dfa86a, #c7924d);
-      color: #14110e;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      box-shadow: 0 3px 10px rgba(199, 146, 77, 0.35);
+    .foto-actions-group .btn i {
+      color: #71717a;
+      font-size: 13px;
     }
-
-    /* =============================================
-       TAB CONTENT
-    ============================================= */
-    .tab-content { display: none; padding: 18px 16px 32px; }
-    .tab-content.active { display: block; animation: fadeIn .2s ease; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(3px); }
@@ -533,14 +976,6 @@
     /* =============================================
        PETA
     ============================================= */
-    #map {
-      height: 220px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border);
-      margin-bottom: 14px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
     .leaflet-pane, .leaflet-top, .leaflet-bottom { z-index: 1 !important; }
     .lokasi-info {
       margin-bottom: 14px;
@@ -564,7 +999,7 @@
       text-align: right;
       max-width: 65%;
       color: var(--obsidian);
-      font-family: ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     /* =============================================
@@ -721,7 +1156,7 @@
     .ri-lokasi {
       font-size: 11px;
       color: var(--text-muted);
-      font-family: ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     .empty-state {
@@ -759,50 +1194,58 @@
       box-shadow: var(--shadow-sm);
     }
     .step-pill {
-      padding: 10px 14px;
-      border-radius: 12px;
+      padding: 6px 8px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      transition: all 0.25s ease;
+      gap: 7px;
+      transition: all 0.15s ease;
+      background: #faf9f7;
+      border: 1px solid #ebe8e2;
     }
     .step-pill.active {
-      border: 1.5px solid var(--gold-border);
-      background: var(--gold-soft-bg);
-      box-shadow: 0 4px 12px rgba(199, 146, 77, 0.12);
+      border: 1px solid #18181b;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .step-pill.done {
-      border: 1.5px solid rgba(30, 90, 64, 0.35);
-      background: rgba(30, 90, 64, 0.05);
+    .step-pill.done,
+    .step-pill.completed {
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
     }
-    .step-pill.pending {
-      border: 1px dashed var(--border);
-      background: #faf8f5;
-      opacity: 0.65;
+    .step-pill.pending,
+    .step-pill.disabled {
+      border: 1px solid #ebe8e2;
+      background: #faf9f7;
+      opacity: 0.6;
     }
     .step-badge-num {
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      font-weight: 800;
+      font-size: 9.5px;
+      font-weight: 700;
       flex-shrink: 0;
+      background: #e4e2dd;
+      color: #71717a;
     }
     .step-pill.active .step-badge-num {
-      background: var(--gold-primary);
-      color: #14110e;
-      box-shadow: 0 2px 8px rgba(199, 146, 77, 0.4);
+      background: #18181b;
+      color: #ffffff;
+      box-shadow: none;
     }
-    .step-pill.done .step-badge-num {
-      background: #1e5a40;
+    .step-pill.done .step-badge-num,
+    .step-pill.completed .step-badge-num {
+      background: #16a34a;
       color: #ffffff;
     }
-    .step-pill.pending .step-badge-num {
-      background: #e2dbd2;
-      color: #726861;
+    .step-pill.pending .step-badge-num,
+    .step-pill.disabled .step-badge-num {
+      background: #e4e2dd;
+      color: #71717a;
     }
 
     /* =============================================
@@ -910,13 +1353,11 @@
     }
 
     .modal-title {
-      font-family: 'Cinzel', serif;
-      font-size: 16px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 700;
       color: var(--obsidian);
-      letter-spacing: 0.05em;
+      letter-spacing: -0.01em;
       margin-bottom: 6px;
-      text-transform: uppercase;
     }
     .modal-subtitle {
       font-size: 12.5px;
@@ -954,51 +1395,63 @@
     }
 
     /* =============================================
-       DEMO ACCOUNTS SELECTOR (Luxury Interactive Grid)
+       DEMO ACCOUNTS SELECTOR (Simple Toggle Button)
     ============================================= */
-    .demo-accounts-box {
-      margin-top: 18px;
-      padding-top: 16px;
+    .demo-toggle-wrap {
+      margin-top: 14px;
+      padding-top: 12px;
       border-top: 1px dashed var(--border);
     }
-    .demo-accounts-header {
+    .btn-demo-toggle {
+      width: 100%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .demo-accounts-title {
-      font-size: 11px;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 12px;
+      background: #faf8f5;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 11.5px;
       font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--gold-dark);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+      user-select: none;
     }
-    .demo-badge-hint {
-      font-size: 9.5px;
-      font-weight: 700;
-      padding: 2px 7px;
-      background: var(--gold-soft-bg);
+    .btn-demo-toggle:hover {
+      background: #ffffff;
+      border-color: var(--gold-primary);
+      color: var(--obsidian);
+      box-shadow: 0 2px 8px rgba(20, 18, 16, 0.05);
+    }
+    .btn-demo-toggle i:first-child {
       color: var(--gold-dark);
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      font-size: 13px;
+    }
+    .btn-demo-toggle #demo-chevron-icon {
+      font-size: 10px;
+      margin-left: 4px;
+      transition: transform 0.2s ease;
+    }
+    .btn-demo-toggle.active #demo-chevron-icon {
+      transform: rotate(180deg);
+    }
+    .demo-collapse-content {
+      margin-top: 10px;
+      animation: fadeIn 0.2s ease forwards;
     }
     .demo-pills-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
     }
     .demo-pill-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 7px;
+      padding: 7px 9px;
       background: #faf8f5;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
@@ -1008,27 +1461,24 @@
       font-family: inherit;
       width: 100%;
       position: relative;
-      z-index: 2;
       user-select: none;
     }
-    .demo-pill-btn * {
-      pointer-events: none;
-    }
+    .demo-pill-btn * { pointer-events: none; }
     .demo-pill-btn:hover {
       background: #ffffff;
       border-color: var(--gold-primary);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(212, 163, 98, 0.15);
+      box-shadow: 0 4px 10px rgba(212, 163, 98, 0.15);
     }
     .demo-pill-btn.active {
       background: #ffffff;
       border-color: var(--gold-dark);
-      box-shadow: 0 4px 12px rgba(184, 133, 59, 0.2);
+      box-shadow: 0 3px 10px rgba(184, 133, 59, 0.2);
       outline: 2px solid rgba(212, 163, 98, 0.4);
     }
     .demo-pill-icon {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: var(--gold-soft-bg);
       border: 1px solid var(--border);
@@ -1036,7 +1486,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
       flex-shrink: 0;
       transition: all 0.2s ease;
     }
@@ -1048,64 +1498,93 @@
     .demo-pill-info {
       min-width: 0;
       flex: 1;
-      line-height: 1.25;
+      line-height: 1.2;
     }
     .demo-pill-name {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--obsidian);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .tag-default {
-      font-size: 8px;
-      font-weight: 800;
-      padding: 1px 4px;
-      background: #141210;
-      color: #dfa86a;
-      border-radius: 4px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      flex-shrink: 0;
     }
     .demo-pill-nim {
       font-size: 10px;
       color: var(--text-muted);
-      font-family: ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     /* =============================================
        RESPONSIVE – SIMULASI LAYAR HP DI DESKTOP
     ============================================= */
-    @media (min-width: 520px) {
-      body {
-        background: radial-gradient(circle at 50% 20%, #ffffff 0%, #faf8f5 50%, #f2ece1 100%);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 16px;
+    /* =============================================
+       RESPONSIVE & PAGE LAYOUT
+    ============================================= */
+    #page-home {
+      width: 100%;
+      min-height: 100vh;
+      background: #faf9f6;
+    }
+    #page-home.active {
+      display: flex !important;
+      flex-direction: column;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 768px) {
+      .topbar-container {
+        padding: 8px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
       }
-      #page-login {
+      .navbar-brand span { display: none; }
+      .navbar-divider { display: none; }
+      .tab-nav {
+        order: 3;
         width: 100%;
-        max-width: 420px;
-        background: transparent !important;
-        min-height: auto !important;
       }
-      #page-home {
-        width: 430px;
-        min-height: 840px;
-        margin: 0 auto;
-        background: var(--bg);
-        box-shadow: 0 25px 60px rgba(20, 18, 16, 0.18), 0 0 0 1px rgba(212, 163, 98, 0.35);
-        border: 8px solid #1c1a17;
-        border-radius: 40px;
-        overflow: hidden;
+      .tab-btn {
+        flex: 1;
+        justify-content: center;
+      }
+      .home-main-area {
+        padding: 14px 10px 32px;
+      }
+      #tab-absensi {
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .home-content-card {
+        border-width: 8px;
+        border-radius: 32px;
+      }
+      .form-group input, .form-textarea-mini {
+        font-size: 16px; /* Mencegah auto-zoom browser iOS Safari pada mobile */
+      }
+      .card-section {
+        padding: 14px 16px;
+      }
+      .card-section-actions {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .topbar-container {
+        padding: 6px 10px;
+      }
+      .btn-topbar-nav span {
+        display: none; /* Hemat ruang di layar super kecil */
+      }
+      .btn-topbar-nav {
+        padding: 6px 9px;
+      }
+      .foto-actions-group .btn {
+        padding: 8px 10px;
+        font-size: 11px;
       }
     }
   </style>
@@ -1120,18 +1599,19 @@
     <p>Portal Presensi Eksekutif</p>
   </div>
 
-  <div class="card">
-    <h2>Autentikasi</h2>
+  <!-- KARTU LOGIN -->
+  <div class="card" id="card-auth-login">
+    <h2>Autentikasi Mahasiswa</h2>
     <div id="login-alert" class="alert"></div>
 
     <div class="form-group">
       <label for="nim">Nomor Induk Mahasiswa / ID</label>
-      <input type="text" id="nim" value="2021001" placeholder="Masukkan ID / NIM Anda" autocomplete="off" />
+      <input type="text" id="nim" value="" placeholder="Masukkan ID / NIM Anda" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('password').focus();" />
     </div>
     <div class="form-group">
       <label for="password">Kata Sandi</label>
       <div class="input-eye">
-        <input type="password" id="password" value="123456" placeholder="Masukkan kata sandi" />
+        <input type="password" id="password" value="" placeholder="Masukkan kata sandi" onkeydown="if(event.key==='Enter')doLogin();" />
         <button type="button" class="btn-eye" onclick="togglePassword()"><i class="fa-regular fa-eye"></i></button>
       </div>
     </div>
@@ -1139,242 +1619,314 @@
       <span id="login-btn-text">Masuk</span>
     </button>
 
-    <!-- Demo Accounts Switcher (Default Terisi + 3 Pilihan Akun Lain) -->
-    <div class="demo-accounts-box">
-      <div class="demo-accounts-header">
-        <div class="demo-accounts-title">
-          <i class="fa-solid fa-users-viewfinder"></i>
-          <span>Pilih Akun Demo Uji Coba:</span>
+    <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+      <span style="font-size:12px;color:var(--text-muted);">Belum punya akun?</span>
+      <button type="button" id="btn-goto-register" onclick="switchAuthView('register')" style="background:none;border:none;color:var(--gold-dark);font-weight:700;font-size:12px;cursor:pointer;margin-left:4px;text-decoration:underline;">Daftar Akun Baru</button>
+    </div>
+
+    <!-- Tombol Sederhana Akun Demo (Tidak Tampil Langsung) -->
+    <div class="demo-toggle-wrap">
+      <button type="button" class="btn-demo-toggle" id="btn-toggle-demo" onclick="toggleDemoAccounts()">
+        <i class="fa-solid fa-users"></i>
+        <span>Pilih Akun Demo (Uji Coba)</span>
+        <i class="fa-solid fa-chevron-down" id="demo-chevron-icon"></i>
+      </button>
+
+      <div id="demo-collapse-content" class="demo-collapse-content" style="display:none;">
+        <div class="demo-pills-grid">
+          <button type="button" class="demo-pill-btn" data-nim="2021001" data-pass="123456" data-nama="Ahmad Fauzi" onclick="selectDemoAccount('2021001', '123456', 'Ahmad Fauzi', this)" title="Pilih akun Ahmad Fauzi">
+            <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+            <div class="demo-pill-info">
+              <div class="demo-pill-name">Ahmad Fauzi</div>
+              <div class="demo-pill-nim">2021001</div>
+            </div>
+          </button>
+
+          <button type="button" class="demo-pill-btn" data-nim="2021002" data-pass="123456" data-nama="Siti Rahayu" onclick="selectDemoAccount('2021002', '123456', 'Siti Rahayu', this)" title="Pilih akun Siti Rahayu">
+            <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+            <div class="demo-pill-info">
+              <div class="demo-pill-name">Siti Rahayu</div>
+              <div class="demo-pill-nim">2021002</div>
+            </div>
+          </button>
+
+          <button type="button" class="demo-pill-btn" data-nim="2021003" data-pass="123456" data-nama="Budi Santoso" onclick="selectDemoAccount('2021003', '123456', 'Budi Santoso', this)" title="Pilih akun Budi Santoso">
+            <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+            <div class="demo-pill-info">
+              <div class="demo-pill-name">Budi Santoso</div>
+              <div class="demo-pill-nim">2021003</div>
+            </div>
+          </button>
+
+          <button type="button" class="demo-pill-btn" data-nim="2021004" data-pass="123456" data-nama="Dewi Lestari" onclick="selectDemoAccount('2021004', '123456', 'Dewi Lestari', this)" title="Pilih akun Dewi Lestari">
+            <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
+            <div class="demo-pill-info">
+              <div class="demo-pill-name">Dewi Lestari</div>
+              <div class="demo-pill-nim">2021004</div>
+            </div>
+          </button>
         </div>
-        <span class="demo-badge-hint">4 Akun Siap</span>
-      </div>
-
-      <div class="demo-pills-grid">
-        <button type="button" class="demo-pill-btn active" data-nim="2021001" data-pass="123456" data-nama="Ahmad Fauzi" onclick="selectDemoAccount('2021001', '123456', 'Ahmad Fauzi', this)" title="Pilih akun Ahmad Fauzi">
-          <div class="demo-pill-icon"><i class="fa-solid fa-user-check"></i></div>
-          <div class="demo-pill-info">
-            <div class="demo-pill-name">Ahmad Fauzi <span class="tag-default">Default</span></div>
-            <div class="demo-pill-nim">2021001</div>
-          </div>
-        </button>
-
-        <button type="button" class="demo-pill-btn" data-nim="2021002" data-pass="123456" data-nama="Siti Rahayu" onclick="selectDemoAccount('2021002', '123456', 'Siti Rahayu', this)" title="Pilih akun Siti Rahayu">
-          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
-          <div class="demo-pill-info">
-            <div class="demo-pill-name">Siti Rahayu</div>
-            <div class="demo-pill-nim">2021002</div>
-          </div>
-        </button>
-
-        <button type="button" class="demo-pill-btn" data-nim="2021003" data-pass="123456" data-nama="Budi Santoso" onclick="selectDemoAccount('2021003', '123456', 'Budi Santoso', this)" title="Pilih akun Budi Santoso">
-          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
-          <div class="demo-pill-info">
-            <div class="demo-pill-name">Budi Santoso</div>
-            <div class="demo-pill-nim">2021003</div>
-          </div>
-        </button>
-
-        <button type="button" class="demo-pill-btn" data-nim="2021004" data-pass="123456" data-nama="Dewi Lestari" onclick="selectDemoAccount('2021004', '123456', 'Dewi Lestari', this)" title="Pilih akun Dewi Lestari">
-          <div class="demo-pill-icon"><i class="fa-solid fa-user"></i></div>
-          <div class="demo-pill-info">
-            <div class="demo-pill-name">Dewi Lestari</div>
-            <div class="demo-pill-nim">2021004</div>
-          </div>
-        </button>
       </div>
     </div>
   </div>
-  <a class="btn btn-ghost" href="../index.html"><i class="fa-solid fa-arrow-up-right-from-square"></i> Portal Utama</a>
+
+  <!-- KARTU REGISTRASI MAHASISWA -->
+  <div class="card" id="card-auth-register" style="display:none;">
+    <h2>Pendaftaran Mahasiswa</h2>
+    <div id="register-alert" class="alert"></div>
+
+    <div class="form-group">
+      <label for="reg-nama">Nama Lengkap Mahasiswa</label>
+      <input type="text" id="reg-nama" placeholder="Masukkan nama lengkap" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('reg-nim').focus();" />
+    </div>
+
+    <div class="form-group">
+      <label for="reg-nim">Nomor Induk Mahasiswa (NIM)</label>
+      <input type="text" id="reg-nim" placeholder="Masukkan NIM Anda" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('reg-password').focus();" />
+    </div>
+
+    <div class="form-group">
+      <label for="reg-password">Kata Sandi</label>
+      <div class="input-eye">
+        <input type="password" id="reg-password" placeholder="Minimal 4 karakter" onkeydown="if(event.key==='Enter')doRegister();" />
+        <button type="button" class="btn-eye" onclick="toggleRegPassword()"><i class="fa-regular fa-eye" id="reg-eye-icon"></i></button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-submit-register" onclick="doRegister()">
+      <span id="register-btn-text">Daftar Akun</span>
+    </button>
+
+    <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+      <span style="font-size:12px;color:var(--text-muted);">Sudah memiliki akun?</span>
+      <button type="button" id="btn-goto-login" onclick="switchAuthView('login')" style="background:none;border:none;color:var(--gold-dark);font-weight:700;font-size:12px;cursor:pointer;margin-left:4px;text-decoration:underline;">Masuk di sini</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:420px;">
+    <a class="btn btn-ghost" href="../index.html" style="font-size:12px;padding:8px 14px;margin-top:0;"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a class="btn btn-ghost" href="../index.html#petunjuk" style="font-size:12px;padding:8px 14px;margin-top:0;"><i class="fa-solid fa-circle-question"></i> Petunjuk</a>
+    <a class="btn btn-ghost" href="../admin/login.php" style="font-size:12px;padding:8px 14px;margin-top:0;"><i class="fa-solid fa-shield-halved"></i> Login Admin</a>
+  </div>
 </div>
 
 <!-- ============================= HOME ============================= -->
 <div id="page-home" class="page">
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <div>
-      <div class="topbar-name" id="user-name">–</div>
-      <div class="topbar-nim"  id="user-nim">–</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <a href="../index.html" class="btn-topbar-nav" title="Kembali ke Halaman Awal / Portal Utama">
-        <i class="fa-solid fa-house"></i>
-        <span>Halaman Awal</span>
-      </a>
-      <button id="btn-logout" class="btn-logout" onclick="doLogout()" title="Keluar dari akun dan ganti akun mahasiswa lain">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        <span>Keluar</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Tab Nav -->
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('absensi')"><i class="fa-solid fa-fingerprint"></i> Presensi</button>
-    <button class="tab-btn"        onclick="switchTab('riwayat')"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</button>
-  </div>
-
-  <!-- ============ TAB ABSENSI (MINIMALIST & CLEAN LOOK) ============ -->
-  <div id="tab-absensi" class="tab-content active">
-
-    <!-- Card 1: Status & Tahap Presensi (Minimalist Header) -->
-    <div class="card" style="padding:14px 16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(22,19,17,0.06);">
-        <div style="color:var(--text-muted);font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px;">
-          <i class="fa-regular fa-calendar" style="color:var(--gold-dark);font-size:13px;"></i>
-          <span id="tanggal-hari">–</span>
-        </div>
-        <div style="font-size:12.5px;font-weight:700;color:var(--obsidian);font-family:ui-monospace, monospace;display:flex;align-items:center;gap:6px;background:#faf8f5;border:1px solid var(--border);padding:3px 10px;border-radius:6px;">
-          <i class="fa-regular fa-clock" style="color:var(--gold-dark);font-size:12px;"></i>
-          <span id="jam-sekarang">–</span>
+  <!-- Topbar Navbar (Clean Standalone Top Navbar) -->
+  <header class="topbar-navbar">
+    <div class="topbar-container">
+      
+      <!-- Brand & Identitas Mahasiswa -->
+      <div class="navbar-left">
+        <a href="../index.html" class="navbar-brand" title="Portal Utama Presensi">
+          <i class="fa-solid fa-fingerprint" style="color:#c08738;"></i>
+          <span>Smart Attendance</span>
+        </a>
+        <div class="navbar-divider"></div>
+        <div class="navbar-user">
+          <span class="topbar-name" id="user-name">–</span>
+          <span class="topbar-nim" id="user-nim">–</span>
         </div>
       </div>
 
-      <!-- Segmented Stepper -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div id="step-pill-masuk" class="step-pill active" style="padding:8px 10px;">
-          <div class="step-badge-num" id="step-icon-masuk" style="width:22px;height:22px;font-size:10px;">1</div>
-          <div style="min-width:0;line-height:1.2;">
-            <div style="font-size:11px;font-weight:700;color:var(--obsidian);font-family:'Cinzel',serif;">Presensi Masuk</div>
-            <span style="font-size:9.5px;color:var(--text-muted);" id="step-time-masuk">Belum terekam</span>
-          </div>
-        </div>
+      <!-- Segmented Navigation Tabs (Presensi & Riwayat) -->
+      <nav class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('absensi')">
+          <i class="fa-solid fa-fingerprint"></i>
+          <span>Presensi</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('riwayat')">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>Riwayat</span>
+        </button>
+      </nav>
 
-        <div id="step-pill-pulang" class="step-pill pending" style="padding:8px 10px;">
-          <div class="step-badge-num" id="step-icon-pulang" style="width:22px;height:22px;font-size:10px;">2</div>
-          <div style="min-width:0;line-height:1.2;">
-            <div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:'Cinzel',serif;">Presensi Pulang</div>
-            <span style="font-size:9.5px;color:var(--text-soft);" id="step-time-pulang">Menunggu masuk</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 2: Lokasi Presensi (Minimalist Map & Compact HUD) -->
-    <div class="card" style="padding:14px 16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <h3 style="margin:0;font-size:13px;"><i class="fa-solid fa-location-dot" style="color:var(--gold-dark);margin-right:6px;"></i>Lokasi Presensi</h3>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="refreshLokasi()" style="padding:4px 10px;font-size:11px;border-radius:6px;gap:5px;">
-          <i class="fa-solid fa-arrows-rotate"></i> Perbarui
+      <!-- Action Buttons (Halaman Awal & Keluar) -->
+      <div class="navbar-right">
+        <a href="../index.html" class="btn-topbar-nav" title="Kembali ke Halaman Awal / Portal Utama">
+          <i class="fa-solid fa-house"></i>
+          <span>Halaman Awal</span>
+        </a>
+        <button id="btn-logout" class="btn-logout" onclick="doLogout()" title="Keluar dari akun dan ganti akun mahasiswa lain">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Keluar</span>
         </button>
       </div>
 
-      <div id="map" style="height:150px;margin-bottom:10px;"></div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:11.5px;background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:8px 12px;">
-        <span id="status-lokasi-text">–</span>
-        <span id="koordinat-text" style="color:var(--text-soft);font-family:monospace;font-size:10.5px;">Mendeteksi…</span>
-      </div>
-      <span id="jarak-text" style="display:none;">–</span>
     </div>
+  </header>
 
-    <!-- Card 3: Verifikasi Swafoto (Minimalist Biometric) -->
-    <div class="card" style="padding:14px 16px;margin-bottom:14px;">
-      <h3 style="margin-bottom:10px;font-size:13px;"><i class="fa-solid fa-camera" style="color:var(--gold-dark);margin-right:6px;"></i>Verifikasi Swafoto</h3>
+  <!-- Area Konten Utama Presensi & Riwayat -->
+  <main class="home-main-area">
+    <div class="home-content-card">
+      <div class="phone-speaker-notch" title="Speaker Bezel"></div>
 
-      <!-- Preview foto -->
-      <div id="foto-preview-wrap" class="foto-preview-wrap" style="display:none;margin-bottom:10px;">
-        <img id="foto-preview" src="" alt="Preview foto" style="max-height:160px;object-fit:cover;" />
-        <button type="button" class="btn-hapus-foto" onclick="hapusFoto()"><i class="fa-solid fa-trash-can"></i> Hapus</button>
-      </div>
+      <!-- ============ TAB ABSENSI (UNIFIED CLEAN CARD) ============ -->
+      <div id="tab-absensi" class="tab-content active" style="padding:0;">
 
-      <!-- Placeholder -->
-      <div id="foto-placeholder" class="foto-placeholder" style="height:90px;margin-bottom:10px;">
-        <span style="font-size:12px;color:var(--text-muted);"><i class="fa-solid fa-user-circle" style="margin-right:6px;font-size:16px;color:var(--gold-dark);"></i>Belum ada foto</span>
-      </div>
-
-      <!-- Kamera live -->
-      <div id="kamera-wrap" class="kamera-wrap" style="display:none;margin-bottom:10px;">
-        <video id="video-stream" autoplay playsinline muted style="max-height:180px;"></video>
-        <div class="kamera-controls" style="margin-top:8px;">
-          <button type="button" class="btn btn-danger btn-sm" onclick="tutupKamera()"><i class="fa-solid fa-xmark"></i> Batal</button>
-          <button type="button" class="btn btn-success btn-sm" onclick="ambilFoto()"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
-        </div>
-      </div>
-
-      <canvas id="canvas-foto" style="display:none"></canvas>
-
-      <!-- Tombol aksi foto -->
-      <div id="foto-actions" class="foto-actions">
-        <button type="button" class="btn" onclick="bukaKamera()"><i class="fa-solid fa-camera"></i> Buka Kamera</button>
-        <label class="btn-upload-label" onclick="document.getElementById('input-foto').click()">
-          <i class="fa-solid fa-arrow-up-from-bracket"></i> Unggah Berkas
-        </label>
-        <input class="input-file-hidden" type="file" id="input-foto" accept="image/*" onchange="uploadFotoFile(event)" />
-      </div>
-    </div>
-
-    <!-- Alert & Tombol Absen -->
-    <div id="absensi-alert" class="alert"></div>
-    <button class="btn btn-primary btn-full btn-absen" id="btn-absen" onclick="doAbsensi()">
-      <i class="fa-solid fa-arrow-right-to-bracket" id="btn-absen-icon"></i>
-      <span id="btn-absen-text">Konfirmasi Presensi Masuk</span>
-    </button>
-
-    <!-- Tombol Izin & Form Izin Tidak Hadir (Simple & Minimalis) -->
-    <div class="izin-section-wrap" style="margin: 0 0 14px;">
-      <button type="button" class="btn btn-secondary btn-full btn-izin" id="btn-toggle-izin" onclick="toggleFormIzin()">
-        <i class="fa-regular fa-calendar-minus" style="color:var(--gold-dark);font-size:14px;"></i>
-        <span id="btn-izin-label">Izin Tidak Hadir</span>
-      </button>
-
-      <!-- Panel Form Izin Tidak Hadir -->
-      <div id="panel-form-izin" class="card-izin-form" style="display:none;margin-top:10px;padding:14px 16px;background:#ffffff;border:1.5px solid var(--gold-border);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);text-align:left;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(212,163,98,0.25);">
-          <div style="font-size:12px;font-weight:700;color:var(--obsidian);font-family:'Cinzel',serif;display:flex;align-items:center;gap:6px;">
-            <i class="fa-solid fa-file-pen" style="color:var(--gold-dark);"></i>
-            <span>Pengajuan Izin Tidak Hadir</span>
+        <!-- SEKSI 1: WAKTU & STATUS STEPPER -->
+        <div class="card-section">
+          <div class="card-section-header">
+            <div class="card-date-label">
+              <i class="fa-regular fa-calendar"></i>
+              <span id="tanggal-hari">–</span>
+            </div>
+            <div class="card-clock-badge">
+              <i class="fa-regular fa-clock"></i>
+              <span id="jam-sekarang">–</span>
+            </div>
           </div>
-          <button type="button" onclick="toggleFormIzin(false)" style="background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:14px;padding:2px 4px;" title="Tutup">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+
+          <!-- Segmented Stepper (Spacious & Clean) -->
+          <div class="stepper-grid">
+            <div id="step-pill-masuk" class="step-pill active">
+              <div class="step-badge-num" id="step-icon-masuk">1</div>
+              <div class="step-text-wrap">
+                <div class="step-title">Presensi Masuk</div>
+                <span class="step-desc" id="step-time-masuk">Belum terekam</span>
+              </div>
+            </div>
+
+            <div id="step-pill-pulang" class="step-pill pending">
+              <div class="step-badge-num" id="step-icon-pulang">2</div>
+              <div class="step-text-wrap">
+                <div class="step-title">Presensi Pulang</div>
+                <span class="step-desc" id="step-time-pulang">Menunggu masuk</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div id="izin-alert" class="alert"></div>
+        <!-- SEKSI 2: LOKASI PRESENSI & PETA -->
+        <div class="card-section">
+          <div class="card-section-header">
+            <span class="card-section-title">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>Lokasi Presensi</span>
+            </span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="refreshLokasi()" style="padding:4px 10px;font-size:11.5px;border-radius:6px;gap:5px;">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Perbarui</span>
+            </button>
+          </div>
 
-        <!-- 3 Pilihan Izin (Minimalist Pills) -->
-        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">
-          Pilih Alasan Izin:
-        </label>
-        <div class="izin-pills-wrap" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:12px;">
-          <button type="button" class="izin-pill-btn active" data-kategori="sakit" onclick="selectKategoriIzin('sakit', this)">
-            <i class="fa-solid fa-heart-pulse"></i>
-            <span>Sakit</span>
-          </button>
-          <button type="button" class="izin-pill-btn" data-kategori="izin" onclick="selectKategoriIzin('izin', this)">
-            <i class="fa-solid fa-clipboard-user"></i>
-            <span>Keperluan</span>
-          </button>
-          <button type="button" class="izin-pill-btn" data-kategori="dispensasi" onclick="selectKategoriIzin('dispensasi', this)">
-            <i class="fa-solid fa-building-columns"></i>
-            <span>Dispensasi</span>
-          </button>
+          <div id="map"></div>
+
+          <div class="lokasi-hud-pill">
+            <span id="status-lokasi-text">–</span>
+            <span id="koordinat-text" style="display:none;">Mendeteksi…</span>
+          </div>
+          <span id="jarak-text" style="display:none;">–</span>
         </div>
 
-        <!-- Form Catatan Keterangan -->
-        <label for="catatan-izin" style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">
-          Catatan / Keterangan:
-        </label>
-        <textarea id="catatan-izin" rows="2" placeholder="Tuliskan keterangan sakit atau istirahat dokter..." style="width:100%;padding:8px 10px;font-size:12.5px;font-family:inherit;border:1.5px solid var(--border);border-radius:var(--radius-sm);outline:none;resize:none;margin-bottom:12px;color:var(--text);background:#faf8f5;"></textarea>
+        <!-- SEKSI 3: VERIFIKASI SWAFOTO -->
+        <div class="card-section">
+          <div class="card-section-header">
+            <span class="card-section-title">
+              <i class="fa-solid fa-camera"></i>
+              <span>Verifikasi Swafoto</span>
+            </span>
+            <span id="foto-status-indicator" class="section-indicator"></span>
+          </div>
 
-        <!-- Aksi Form Izin -->
-        <div style="display:flex;gap:8px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="toggleFormIzin(false)" style="flex:1;padding:8px 12px;font-size:12px;">Batal</button>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-submit-izin" onclick="submitIzin()" style="flex:2;padding:8px 12px;font-size:12px;">
-            <i class="fa-solid fa-paper-plane"></i>
-            <span id="btn-submit-izin-text">Kirim Izin</span>
-          </button>
+          <!-- Kamera Live (Expanded saat aktif) -->
+          <div id="kamera-wrap" class="kamera-wrap" style="display:none;margin-bottom:10px;">
+            <video id="video-stream" autoplay playsinline muted style="width:100%;max-height:175px;border-radius:10px;object-fit:cover;background:#000;"></video>
+            <div class="kamera-controls" style="margin-top:8px;display:flex;gap:8px;">
+              <button type="button" class="btn btn-danger btn-sm" onclick="tutupKamera()" style="flex:1;padding:8px 12px;font-size:12px;"><i class="fa-solid fa-xmark"></i> Batal</button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="ambilFoto()" style="flex:2;padding:8px 12px;font-size:12px;"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
+            </div>
+          </div>
+
+          <!-- Baris Thumbnail & Aksi Swafoto -->
+          <div class="foto-row">
+            <div class="foto-thumb-slot">
+              <div id="foto-placeholder" class="foto-placeholder-mini">
+                <i class="fa-solid fa-user"></i>
+              </div>
+
+              <div id="foto-preview-wrap" class="foto-preview-mini" style="display:none;">
+                <img id="foto-preview" src="" alt="Preview" />
+                <button type="button" class="btn-hapus-foto-mini" onclick="hapusFoto()" title="Hapus foto">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <canvas id="canvas-foto" style="display:none"></canvas>
+
+            <div id="foto-actions" class="foto-actions-group">
+              <button type="button" class="btn btn-secondary" onclick="bukaKamera()">
+                <i class="fa-solid fa-camera"></i>
+                <span>Buka Kamera</span>
+              </button>
+              <label class="btn btn-secondary" onclick="document.getElementById('input-foto').click()" style="margin:0;cursor:pointer;">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <span>Unggah Foto</span>
+              </label>
+              <input class="input-file-hidden" type="file" id="input-foto" accept="image/*" onchange="uploadFotoFile(event)" />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div style="text-align:center;margin-top:-6px;margin-bottom:14px;">
-      <a href="../index.html" class="btn btn-ghost" style="display:inline-flex;width:100%;margin:0;font-size:12px;padding:10px 14px;">
-        <i class="fa-solid fa-house"></i> Kembali ke Halaman Awal Portal
-      </a>
-    </div>
+        <!-- SEKSI 4: AKSI PRESENSI & FORM IZIN -->
+        <div class="card-section card-section-actions">
+          <div id="absensi-alert" class="alert"></div>
 
-  </div><!-- /tab-absensi -->
+          <button class="btn btn-primary btn-full btn-absen" id="btn-absen" onclick="doAbsensi()">
+            <i class="fa-solid fa-arrow-right-to-bracket" id="btn-absen-icon"></i>
+            <span id="btn-absen-text">Konfirmasi Presensi Masuk</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-full btn-izin" id="btn-toggle-izin" onclick="toggleFormIzin()">
+            <i class="fa-regular fa-calendar-minus"></i>
+            <span id="btn-izin-label">Izin Tidak Hadir</span>
+          </button>
+
+          <!-- Panel Form Izin Tidak Hadir -->
+          <div id="panel-form-izin" class="card-izin-form" style="display:none;">
+            <div class="card-section-header" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f0eee9;">
+              <span class="card-section-title">
+                <i class="fa-solid fa-file-pen"></i>
+                <span>Pengajuan Izin Tidak Hadir</span>
+              </span>
+              <button type="button" onclick="toggleFormIzin(false)" class="btn-close-form" title="Tutup">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div id="izin-alert" class="alert"></div>
+
+            <label class="field-label-mini">Pilih Alasan Izin:</label>
+            <div class="izin-pills-wrap" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:10px;">
+              <button type="button" class="izin-pill-btn active" data-kategori="sakit" onclick="selectKategoriIzin('sakit', this)">
+                <i class="fa-solid fa-heart-pulse"></i>
+                <span>Sakit</span>
+              </button>
+              <button type="button" class="izin-pill-btn" data-kategori="izin" onclick="selectKategoriIzin('izin', this)">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Keperluan</span>
+              </button>
+              <button type="button" class="izin-pill-btn" data-kategori="dispensasi" onclick="selectKategoriIzin('dispensasi', this)">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Dispensasi</span>
+              </button>
+            </div>
+
+            <label for="catatan-izin" class="field-label-mini">Catatan / Keterangan:</label>
+            <textarea id="catatan-izin" rows="2" class="form-textarea-mini" placeholder="Tuliskan keterangan sakit atau keperluan..."></textarea>
+
+            <div class="form-actions-inline">
+              <button type="button" class="btn btn-secondary" onclick="toggleFormIzin(false)" style="flex:1;">Batal</button>
+              <button type="button" class="btn btn-primary" id="btn-submit-izin" onclick="submitIzin()" style="flex:2;">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span id="btn-submit-izin-text">Kirim Izin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-absensi -->
 
   <!-- ============ TAB RIWAYAT ============ -->
   <div id="tab-riwayat" class="tab-content">
@@ -1385,13 +1937,10 @@
     <div id="riwayat-list">
       <div class="empty-state">Tekan "Perbarui" untuk menampilkan data</div>
     </div>
-
-    <div style="text-align:center;margin-top:14px;margin-bottom:14px;">
-      <a href="../index.html" class="btn btn-ghost" style="display:inline-flex;width:100%;margin:0;font-size:12px;padding:10px 14px;">
-        <i class="fa-solid fa-house"></i> Kembali ke Halaman Awal Portal
-      </a>
-    </div>
   </div>
+
+    </div><!-- /home-content-card -->
+  </main><!-- /home-main-area -->
 
 </div><!-- /page-home -->
 
@@ -1419,6 +1968,173 @@
 // ============================================
 // DEMO ACCOUNT SWITCHER (Inline Instant Execution)
 // ============================================
+function toggleDemoAccounts() {
+  var content = document.getElementById('demo-collapse-content');
+  var btn = document.getElementById('btn-toggle-demo');
+  if (!content) return;
+  if (content.style.display === 'none' || content.style.display === '') {
+    content.style.display = 'block';
+    if (btn) btn.classList.add('active');
+  } else {
+    content.style.display = 'none';
+    if (btn) btn.classList.remove('active');
+  }
+}
+
+// ============================================
+// PERALIHAN FORM LOGIN & REGISTRASI (INLINE INSTANT)
+// ============================================
+function switchAuthView(mode) {
+  var cardLogin = document.getElementById('card-auth-login');
+  var cardRegister = document.getElementById('card-auth-register');
+  var alertLogin = document.getElementById('login-alert');
+  var alertReg = document.getElementById('register-alert');
+
+  if (alertLogin) {
+    alertLogin.style.display = 'none';
+    alertLogin.className = 'alert';
+    alertLogin.textContent = '';
+  }
+  if (alertReg) {
+    alertReg.style.display = 'none';
+    alertReg.className = 'alert';
+    alertReg.textContent = '';
+  }
+
+  if (mode === 'register') {
+    if (cardLogin) cardLogin.style.display = 'none';
+    if (cardRegister) {
+      cardRegister.style.display = 'block';
+      var regNama = document.getElementById('reg-nama');
+      if (regNama) setTimeout(function() { regNama.focus(); }, 50);
+    }
+  } else {
+    if (cardRegister) cardRegister.style.display = 'none';
+    if (cardLogin) {
+      cardLogin.style.display = 'block';
+      var nim = document.getElementById('nim');
+      if (nim) setTimeout(function() { nim.focus(); }, 50);
+    }
+  }
+}
+
+function toggleRegPassword() {
+  var inp = document.getElementById('reg-password');
+  var icon = document.getElementById('reg-eye-icon');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+  } else {
+    inp.type = 'password';
+    if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+  }
+}
+
+async function doRegister() {
+  var namaEl     = document.getElementById('reg-nama');
+  var nimEl      = document.getElementById('reg-nim');
+  var passEl     = document.getElementById('reg-password');
+  var alertEl    = document.getElementById('register-alert');
+  var btnText    = document.getElementById('register-btn-text');
+  var btn        = document.getElementById('btn-submit-register');
+
+  var nama     = (namaEl ? namaEl.value : '').trim();
+  var nim      = (nimEl ? nimEl.value : '').trim();
+  var password = (passEl ? passEl.value : '').trim();
+
+  if (alertEl) {
+    alertEl.style.display = 'none';
+    alertEl.className = 'alert';
+    alertEl.textContent = '';
+  }
+
+  if (!nama || !nim || !password) {
+    if (alertEl) {
+      alertEl.textContent = 'Nama lengkap, NIM, dan kata sandi wajib diisi.';
+      alertEl.className = 'alert alert-error show';
+      alertEl.style.display = 'block';
+    }
+    if (typeof showToast === 'function') showToast('Nama lengkap, NIM, dan kata sandi wajib diisi.', 'error');
+    return;
+  }
+
+  if (nim.length < 3) {
+    if (alertEl) {
+      alertEl.textContent = 'NIM minimal terdiri dari 3 karakter.';
+      alertEl.className = 'alert alert-error show';
+      alertEl.style.display = 'block';
+    }
+    return;
+  }
+
+  if (password.length < 4) {
+    if (alertEl) {
+      alertEl.textContent = 'Kata sandi minimal terdiri dari 4 karakter.';
+      alertEl.className = 'alert alert-error show';
+      alertEl.style.display = 'block';
+    }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerHTML = '<span class="spinner"></span> Mendaftarkan…';
+
+  try {
+    var res = await fetch('../api/register.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama: nama, nim: nim, password: password })
+    });
+    var json = await res.json();
+
+    if (json.status === 'success') {
+      if (typeof showToast === 'function') {
+        showToast('Pendaftaran akun berhasil! Silakan masuk.', 'success', 3500);
+      }
+
+      // Isi form login
+      var inpNim = document.getElementById('nim');
+      var inpPass = document.getElementById('password');
+      if (inpNim) inpNim.value = nim;
+      if (inpPass) inpPass.value = password;
+
+      // Bersihkan form register
+      if (namaEl) namaEl.value = '';
+      if (nimEl) nimEl.value = '';
+      if (passEl) passEl.value = '';
+
+      // Beralih ke form login
+      switchAuthView('login');
+
+      var loginAlert = document.getElementById('login-alert');
+      if (loginAlert) {
+        loginAlert.textContent = 'Akun ' + nama + ' (' + nim + ') berhasil didaftarkan. Silakan tekan tombol Masuk.';
+        loginAlert.className = 'alert alert-success show';
+        loginAlert.style.display = 'block';
+      }
+    } else {
+      if (alertEl) {
+        alertEl.textContent = json.message || 'Pendaftaran gagal.';
+        alertEl.className = 'alert alert-error show';
+        alertEl.style.display = 'block';
+      }
+      if (typeof showToast === 'function') {
+        showToast(json.message || 'Pendaftaran gagal.', 'error');
+      }
+    }
+  } catch (err) {
+    if (alertEl) {
+      alertEl.textContent = 'Gagal terhubung ke server: ' + err.message;
+      alertEl.className = 'alert alert-error show';
+      alertEl.style.display = 'block';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.textContent = 'Daftar Akun';
+  }
+}
+
 function selectDemoAccount(nim, password, nama, btn) {
   try {
     var nimInput = document.getElementById('nim');
@@ -1450,8 +2166,16 @@ function selectDemoAccount(nim, password, nama, btn) {
       alertEl.textContent = '';
     }
 
+    // Otomatis sembunyikan kembali menu akun demo agar tampilan ringkas
+    var collapseContent = document.getElementById('demo-collapse-content');
+    var toggleBtn = document.getElementById('btn-toggle-demo');
+    if (collapseContent && collapseContent.style.display !== 'none') {
+      collapseContent.style.display = 'none';
+      if (toggleBtn) toggleBtn.classList.remove('active');
+    }
+
     if (typeof showToast === 'function') {
-      showToast('Akun demo ' + (nama || nim) + ' (' + nim + ') aktif. Silakan tekan Masuk.', 'info', 2200);
+      showToast('Akun ' + (nama || nim) + ' siap digunakan. Silakan tekan Masuk.', 'info', 2200);
     }
   } catch (err) {
     console.error('Error selectDemoAccount:', err);
@@ -1459,9 +2183,8 @@ function selectDemoAccount(nim, password, nama, btn) {
 }
 
 function resetDemoAccountPills(defaultNim) {
-  if (!defaultNim) defaultNim = '2021001';
   document.querySelectorAll('.demo-pill-btn').forEach(function(b) {
-    var isDef = (b.getAttribute('data-nim') === defaultNim);
+    var isDef = Boolean(defaultNim && b.getAttribute('data-nim') === defaultNim);
     b.classList.toggle('active', isDef);
     var icon = b.querySelector('.demo-pill-icon i');
     if (icon) {
@@ -1472,6 +2195,22 @@ function resetDemoAccountPills(defaultNim) {
 
 // Attach event listeners directly on DOMContentLoaded to guarantee click handling
 document.addEventListener('DOMContentLoaded', function() {
+  var btnReg = document.getElementById('btn-goto-register');
+  if (btnReg) {
+    btnReg.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchAuthView('register');
+    });
+  }
+
+  var btnLog = document.getElementById('btn-goto-login');
+  if (btnLog) {
+    btnLog.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchAuthView('login');
+    });
+  }
+
   document.querySelectorAll('.demo-pill-btn').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -1484,6 +2223,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="js/app.js?v=20261029_izin01"></script>
+<script src="js/app.js?v=20261111_v2"></script>
 </body>
 </html>

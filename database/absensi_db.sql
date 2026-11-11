@@ -1,6 +1,6 @@
 -- ============================================
 -- Smart Attendance System - Database Setup
--- Program Studi: Teknik Informatika
+-- Sistem Presensi Berbasis GPS & Biometrik Selfie
 -- ============================================
 
 CREATE DATABASE IF NOT EXISTS absensi_db

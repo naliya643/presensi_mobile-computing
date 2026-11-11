@@ -64,6 +64,106 @@ if ($resCfg) {
         $settings[$r['setting_key']] = ['value' => $r['setting_val'], 'label' => $r['label']];
     }
 }
+
+// ============================================
+// AGREGASI DATA GRAFIK KEHADIRAN (CHART.JS)
+// ============================================
+$trendLabels = [];
+$trendHadirData = [];
+$trendTerlambatData = [];
+$trendIzinData = [];
+
+// 7 Hari Terakhir
+for ($i = 6; $i >= 0; $i--) {
+    $tglKey = date('Y-m-d', strtotime("-$i days"));
+    $labelKey = date('d M', strtotime("-$i days"));
+    $trendLabels[$tglKey] = $labelKey;
+    $trendHadirData[$tglKey] = 0;
+    $trendTerlambatData[$tglKey] = 0;
+    $trendIzinData[$tglKey] = 0;
+}
+
+$resTrend = $conn->query("
+    SELECT DATE(waktu) as tgl, status, COUNT(*) as jml
+    FROM absensi
+    WHERE waktu >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    GROUP BY DATE(waktu), status
+");
+if ($resTrend) {
+    while ($tr = $resTrend->fetch_assoc()) {
+        $t = $tr['tgl'];
+        $st = strtolower($tr['status']);
+        $jml = (int)$tr['jml'];
+        if (isset($trendLabels[$t])) {
+            if ($st === 'hadir') {
+                $trendHadirData[$t] += $jml;
+            } elseif ($st === 'terlambat') {
+                $trendTerlambatData[$t] += $jml;
+            } else {
+                $trendIzinData[$t] += $jml;
+            }
+        }
+    }
+}
+
+// Fallback jika data berada di luar 7 hari terakhir tapi $total > 0
+$sumTrend = array_sum($trendHadirData) + array_sum($trendTerlambatData) + array_sum($trendIzinData);
+if ($sumTrend === 0 && $total > 0) {
+    $resDistinctDays = $conn->query("
+        SELECT DISTINCT DATE(waktu) as tgl 
+        FROM absensi 
+        ORDER BY tgl DESC 
+        LIMIT 7
+    ");
+    if ($resDistinctDays && $resDistinctDays->num_rows > 0) {
+        $foundDays = [];
+        while ($r = $resDistinctDays->fetch_assoc()) {
+            $foundDays[] = $r['tgl'];
+        }
+        $foundDays = array_reverse($foundDays);
+        
+        $trendLabels = [];
+        $trendHadirData = [];
+        $trendTerlambatData = [];
+        $trendIzinData = [];
+        foreach ($foundDays as $fd) {
+            $trendLabels[$fd] = date('d M', strtotime($fd));
+            $trendHadirData[$fd] = 0;
+            $trendTerlambatData[$fd] = 0;
+            $trendIzinData[$fd] = 0;
+        }
+        
+        $inClause = "'" . implode("','", $foundDays) . "'";
+        $resTrend2 = $conn->query("
+            SELECT DATE(waktu) as tgl, status, COUNT(*) as jml
+            FROM absensi
+            WHERE DATE(waktu) IN ($inClause)
+            GROUP BY DATE(waktu), status
+        ");
+        if ($resTrend2) {
+            while ($tr = $resTrend2->fetch_assoc()) {
+                $t = $tr['tgl'];
+                $st = strtolower($tr['status']);
+                $jml = (int)$tr['jml'];
+                if (isset($trendLabels[$t])) {
+                    if ($st === 'hadir') {
+                        $trendHadirData[$t] += $jml;
+                    } elseif ($st === 'terlambat') {
+                        $trendTerlambatData[$t] += $jml;
+                    } else {
+                        $trendIzinData[$t] += $jml;
+                    }
+                }
+            }
+        }
+    }
+}
+
+$chartLabelsJson = json_encode(array_values($trendLabels));
+$chartHadirJson = json_encode(array_values($trendHadirData));
+$chartTerlambatJson = json_encode(array_values($trendTerlambatData));
+$chartIzinJson = json_encode(array_values($trendIzinData));
+
 $conn->close();
 
 $kampusLat = (float)($settings['kampus_lat']['value'] ?? -6.2088);
@@ -91,6 +191,9 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Chart.js CDN (Clean Modern Charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     *, *::before, *::after {
@@ -544,19 +647,19 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
       background: #ffffff;
       border: 1px solid var(--card-border);
       border-radius: var(--radius-lg);
-      padding: 24px 22px;
-      box-shadow: 0 8px 24px rgba(22, 19, 17, 0.05), 0 1px 3px rgba(22, 19, 17, 0.02);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 20px 22px;
+      box-shadow: 0 4px 16px rgba(22, 19, 17, 0.04);
+      transition: all 0.22s ease;
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
     }
 
     .stat-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 34px rgba(22, 19, 17, 0.08);
+      box-shadow: 0 10px 28px rgba(22, 19, 17, 0.08);
       border-color: var(--gold-primary);
     }
 
@@ -564,15 +667,15 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .stat-label {
-      font-family: 'Cinzel', serif;
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.03em;
       color: var(--text-muted);
     }
 
@@ -592,13 +695,13 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
     .stat-icon.taupe { background: var(--taupe-soft-bg); color: var(--taupe-corp); border: 1px solid rgba(197, 155, 86, 0.25); }
 
     .stat-value {
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       font-weight: 800;
       letter-spacing: -0.03em;
-      line-height: 1.1;
+      line-height: 1;
       color: var(--text-main);
       font-variant-numeric: tabular-nums;
-      margin-bottom: 6px;
+      margin-bottom: 0;
     }
 
     .stat-meta {
@@ -1401,10 +1504,168 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ---- DASHBOARD BANNER ---- */
+    .dashboard-banner {
+      background: linear-gradient(135deg, #1f1b18 0%, #29241f 100%);
+      border: 1px solid rgba(212, 163, 98, 0.22);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 22px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 18px rgba(20, 18, 16, 0.07);
+    }
+    .banner-text h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .banner-text p {
+      font-size: 0.82rem;
+      color: #b8afa4;
+      max-width: 580px;
+      line-height: 1.45;
+      margin: 0;
+    }
+    .banner-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    /* ---- CHARTS GRID ---- */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .chart-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      box-shadow: 0 8px 24px rgba(22, 19, 17, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f4f0e8;
+    }
+    .chart-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+    }
+    .chart-card-title i {
+      color: var(--gold-dark);
+      font-size: 1rem;
+    }
+    .chart-card-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 250px;
+      max-height: 290px;
+    }
+
+    /* Donut Legend List */
+    .donut-legend-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed #ede8df;
+    }
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+    }
+    .donut-legend-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .legend-bullet {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .donut-legend-val {
+      font-weight: 700;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---- DASHBOARD SPLIT GRID ---- */
+    .dashboard-split-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1.2fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    /* Mini Table */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .mini-table th {
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 10px 12px;
+      border-bottom: 1.5px solid #f0eae1;
+      background: #faf8f5;
+    }
+    .mini-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #f4f0e8;
+      vertical-align: middle;
+    }
+    .mini-table tr:hover td {
+      background: #faf8f5;
+    }
+
     /* ---- RESPONSIVE ---- */
     @media (max-width: 1080px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .settings-layout { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .dashboard-split-grid { grid-template-columns: 1fr; }
+      .dashboard-banner { flex-direction: column; align-items: flex-start; }
     }
 
     @media (max-width: 768px) {
@@ -1446,7 +1707,12 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
       
       <button class="sidebar-link active" id="nav-btn-dashboard" onclick="switchNav('dashboard')">
         <i class="fa-solid fa-chart-pie"></i>
-        <span>Monitoring Presensi</span>
+        <span>Dashboard Utama</span>
+      </button>
+
+      <button class="sidebar-link" id="nav-btn-riwayat" onclick="switchNav('riwayat')">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Riwayat Presensi</span>
         <span class="menu-badge" id="sidebar-total-badge"><?= $total ?></span>
       </button>
 
@@ -1455,21 +1721,26 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
         <span>Konfigurasi Geofence</span>
       </button>
 
-      <div class="menu-heading" style="margin-top:16px;">Tautan Terkait</div>
+      <div class="menu-heading" style="margin-top:16px;">Navigasi Sistem</div>
 
       <a class="sidebar-link" href="../frontend/index.html" target="_blank">
         <i class="fa-solid fa-mobile-screen"></i>
-        <span>Aplikasi Presensi Mobile</span>
+        <span>Presensi Mahasiswa</span>
       </a>
 
-      <a class="sidebar-link" href="../flutterfrontend.html" target="_blank">
-        <i class="fa-solid fa-code"></i>
-        <span>Dokumentasi Sistem</span>
+      <a class="sidebar-link" href="../index.html#petunjuk" target="_blank">
+        <i class="fa-solid fa-circle-question"></i>
+        <span>Petunjuk Penggunaan</span>
+      </a>
+
+      <a class="sidebar-link" href="../index.html#tentang" target="_blank">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Tentang Kami</span>
       </a>
 
       <a class="sidebar-link" href="../index.html">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Portal Tutorial</span>
+        <i class="fa-solid fa-house"></i>
+        <span>Halaman Utama</span>
       </a>
     </div>
 
@@ -1514,7 +1785,7 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
         <div class="breadcrumbs">
           <span>Portal Administrasi</span>
           <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
-          <span id="page-title-crumb" style="color:var(--rose-luxury);">Presensi Realtime</span>
+          <span id="page-title-crumb" style="color:var(--rose-luxury);">Dashboard Utama</span>
         </div>
       </div>
 
@@ -1540,10 +1811,28 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
     <!-- CONTENT STAGE -->
     <main class="content-stage">
 
-      <!-- ===================== TAB DASHBOARD ===================== -->
+      <!-- ===================== TAB DASHBOARD (CLEAN LOOK MODERN) ===================== -->
       <section id="tab-dashboard" class="tab-panel active">
         
-        <!-- KPI STATS CARDS -->
+        <!-- DASHBOARD BANNER -->
+        <div class="dashboard-banner">
+          <div class="banner-text">
+            <h2>Selamat Datang, <?= $adminNama ?></h2>
+            <p>Pantau rekapan kilas kehadiran mahasiswa, grafik mingguan, dan parameter geofencing hari ini.</p>
+          </div>
+          <div class="banner-actions">
+            <button class="btn btn-luxury btn-sm" onclick="switchNav('riwayat')">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>Riwayat Presensi</span>
+            </button>
+            <button class="btn btn-luxury btn-sm" onclick="switchNav('settings')">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Atur Geofence</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI STATS CARDS (REKAPAN KILAS KEHADIRAN) -->
         <div class="stats-grid">
           
           <div class="stat-card">
@@ -1552,22 +1841,14 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
               <div class="stat-icon rose"><i class="fa-solid fa-clipboard-check"></i></div>
             </div>
             <div class="stat-value"><?= number_format($total) ?></div>
-            <div class="stat-meta">
-              <span class="trend-pill neutral">Semua Waktu</span>
-              <span>Total terekam di basis data</span>
-            </div>
           </div>
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-label">Tepat Waktu (Hadir)</span>
+              <span class="stat-label">Tepat Waktu</span>
               <div class="stat-icon sage"><i class="fa-solid fa-circle-check"></i></div>
             </div>
             <div class="stat-value" style="color:var(--sage-corp);"><?= number_format($hadir) ?></div>
-            <div class="stat-meta">
-              <span class="trend-pill positive"><?= $rateHadir ?>% Rasio</span>
-              <span>Memenuhi batas jam masuk</span>
-            </div>
           </div>
 
           <div class="stat-card">
@@ -1576,24 +1857,220 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
               <div class="stat-icon berry"><i class="fa-solid fa-clock-rotate-left"></i></div>
             </div>
             <div class="stat-value" style="color:var(--berry-corp);"><?= number_format($terlambat) ?></div>
-            <div class="stat-meta">
-              <span>Setelah pukul <?= str_pad($batasJam, 2, '0', STR_PAD_LEFT) ?>:<?= str_pad($batasMenit, 2, '0', STR_PAD_LEFT) ?></span>
-            </div>
           </div>
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-label">Personel Terdaftar</span>
-              <div class="stat-icon taupe"><i class="fa-solid fa-users"></i></div>
+              <span class="stat-label">Izin & Sakit</span>
+              <div class="stat-icon taupe"><i class="fa-solid fa-file-signature"></i></div>
             </div>
-            <div class="stat-value"><?= number_format($mahasiswa) ?></div>
-            <div class="stat-meta">
-              <span>Akun aktif dalam sistem</span>
+            <div class="stat-value" style="color:var(--gold-dark);"><?= number_format($izinCount) ?></div>
+          </div>
+
+        </div>
+
+        <!-- CHARTS GRID (GRAFIK KEHADIRAN CLEAN LOOK & MODERN) -->
+        <div class="charts-grid">
+          
+          <!-- Card Kiri: Tren Kehadiran Mingguan -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Tren Kehadiran (7 Hari Terakhir)</span>
+              </div>
+              <span class="chart-card-meta">Data Akumulatif Harian</span>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chart-trend-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Card Kanan: Distribusi Status Kehadiran (Donut) -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Distribusi Status</span>
+              </div>
+              <span class="chart-card-meta"><?= $total ?> Total Log</span>
+            </div>
+            <div class="chart-canvas-wrap" style="display:flex;align-items:center;justify-content:center;">
+              <canvas id="chart-donut-canvas" style="max-height:185px;"></canvas>
+            </div>
+            <div class="donut-legend-wrap">
+              <div class="donut-legend-item">
+                <div class="donut-legend-label">
+                  <span class="legend-bullet" style="background:#1e5a40;"></span>
+                  <span>Tepat Waktu (Hadir)</span>
+                </div>
+                <span class="donut-legend-val"><?= $hadir ?> (<?= $total > 0 ? round(($hadir/$total)*100, 1) : 0 ?>%)</span>
+              </div>
+              <div class="donut-legend-item">
+                <div class="donut-legend-label">
+                  <span class="legend-bullet" style="background:#9c2436;"></span>
+                  <span>Terlambat</span>
+                </div>
+                <span class="donut-legend-val"><?= $terlambat ?> (<?= $total > 0 ? round(($terlambat/$total)*100, 1) : 0 ?>%)</span>
+              </div>
+              <div class="donut-legend-item">
+                <div class="donut-legend-label">
+                  <span class="legend-bullet" style="background:#d4a362;"></span>
+                  <span>Izin / Sakit / Dispensasi</span>
+                </div>
+                <span class="donut-legend-val"><?= $izinCount ?> (<?= $total > 0 ? round(($izinCount/$total)*100, 1) : 0 ?>%)</span>
+              </div>
             </div>
           </div>
 
         </div>
 
+        <!-- DASHBOARD SPLIT GRID: AKTIVITAS TERKINI & STATUS GEOFENCE -->
+        <div class="dashboard-split-grid">
+          
+          <!-- Aktivitas Presensi Terkini (5 Entri Terakhir) -->
+          <div class="card" style="padding:22px 24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f4f0e8;">
+              <div class="chart-card-title">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Aktivitas Presensi Terkini</span>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="switchNav('riwayat')" style="font-size:0.75rem;">
+                <span>Buka Riwayat Lengkap</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+
+            <div class="table-responsive" style="border:none;box-shadow:none;">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Personel</th>
+                    <th>Waktu Presensi</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php 
+                  $recent5 = array_slice($absensi, 0, 5);
+                  if (!empty($recent5)): 
+                    foreach ($recent5 as $r):
+                      $isIzinR = in_array(strtolower($r['status']), ['izin', 'sakit', 'dispensasi']);
+                      $rCat = !empty($r['catatan']) ? htmlspecialchars($r['catatan']) : '';
+                      $lat1 = deg2rad($r['latitude']);
+                      $lng1 = deg2rad($r['longitude']);
+                      $lat2 = deg2rad($kampusLat);
+                      $lng2 = deg2rad($kampusLng);
+                      $dLat = $lat2 - $lat1;
+                      $dLng = $lng2 - $lng1;
+                      $a = sin($dLat/2) * sin($dLat/2) + cos($lat1) * cos($lat2) * sin($dLng/2) * sin($dLng/2);
+                      $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+                      $dMeter = round(6371000 * $c);
+                      $hFoto = !empty($r['foto']);
+                      $fPath = $hFoto ? '../' . htmlspecialchars($r['foto']) : '';
+                      $hFotoP = !empty($r['foto_pulang']);
+                      $fPPath = $hFotoP ? '../' . htmlspecialchars($r['foto_pulang']) : '';
+                      $wPlg = !empty($r['waktu_pulang']) ? htmlspecialchars($r['waktu_pulang']) : '';
+                  ?>
+                  <tr>
+                    <td>
+                      <div class="person-cell">
+                        <div class="avatar-wrapper" style="width:34px;height:34px;" onclick="openInspectionModal('<?= htmlspecialchars(addslashes($r['nama'])) ?>', '<?= htmlspecialchars($r['nim']) ?>', '<?= $fPath ?>', '<?= $fPPath ?>', '<?= $r['waktu'] ?>', '<?= $wPlg ?>', '<?= round($r['latitude'], 6) ?>', '<?= round($r['longitude'], 6) ?>', '<?= strtoupper($r['status']) ?>', '<?= $dMeter ?>', '<?= addslashes($rCat) ?>')">
+                          <?php if ($hFoto): ?>
+                            <img src="<?= $fPath ?>" class="avatar-img" alt="Selfie" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'34\' height=\'34\'%3E%3Crect width=\'34\' height=\'34\' fill=\'%23f7eff1\'/%3E%3C/svg%3E';">
+                          <?php elseif ($isIzinR): ?>
+                            <div class="avatar-placeholder" style="background:#fef7ea;color:#b8853b;width:34px;height:34px;font-size:0.85rem;"><i class="fa-solid fa-file-signature"></i></div>
+                          <?php else: ?>
+                            <div class="avatar-placeholder" style="width:34px;height:34px;font-size:0.85rem;"><i class="fa-solid fa-user"></i></div>
+                          <?php endif; ?>
+                        </div>
+                        <div class="person-details">
+                          <span class="person-name" style="font-size:0.82rem;"><?= htmlspecialchars($r['nama']) ?></span>
+                          <span class="person-nim" style="font-size:0.7rem;"><?= htmlspecialchars($r['nim']) ?></span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="font-size:0.78rem;font-weight:600;color:var(--text-main);font-variant-numeric:tabular-nums;">
+                        <?= htmlspecialchars(substr($r['waktu'], 11, 8)) ?>
+                      </div>
+                      <div style="font-size:0.7rem;color:var(--text-soft);">
+                        <?= htmlspecialchars(substr($r['waktu'], 0, 10)) ?>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="status-badge <?= $isIzinR ? 'izin' : strtolower($r['status']) ?>" style="font-size:0.7rem;padding:3px 8px;">
+                        <span class="dot"></span>
+                        <span><?= strtoupper($r['status']) ?></span>
+                      </span>
+                    </td>
+                    <td style="text-align:right;">
+                      <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:0.72rem;" onclick="openInspectionModal('<?= htmlspecialchars(addslashes($r['nama'])) ?>', '<?= htmlspecialchars($r['nim']) ?>', '<?= $fPath ?>', '<?= $fPPath ?>', '<?= $r['waktu'] ?>', '<?= $wPlg ?>', '<?= round($r['latitude'], 6) ?>', '<?= round($r['longitude'], 6) ?>', '<?= strtoupper($r['status']) ?>', '<?= $dMeter ?>', '<?= addslashes($rCat) ?>')">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <?php endforeach; else: ?>
+                  <tr>
+                    <td colspan="4" style="text-align:center;padding:24px;color:var(--text-soft);font-size:0.8rem;">
+                      Belum ada data presensi yang masuk.
+                    </td>
+                  </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Parameter Geofence & Status Sistem Ringkas -->
+          <div class="card" style="padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f4f0e8;">
+                <div class="chart-card-title">
+                  <i class="fa-solid fa-shield-halved"></i>
+                  <span>Status Geofence & Aturan</span>
+                </div>
+                <span class="badge" style="background:#edf6f1;color:#1e5a40;border:1px solid #bfe0cf;font-size:0.72rem;padding:3px 8px;border-radius:999px;font-weight:700;">
+                  <i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> AKTIF
+                </span>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:12px;font-size:0.8rem;">
+                <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #f4f0e8;">
+                  <span style="color:var(--text-muted);">Radius Maksimal:</span>
+                  <span style="font-weight:700;color:var(--text-main);font-variant-numeric:tabular-nums;"><?= $maxRadius ?> Meter</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #f4f0e8;">
+                  <span style="color:var(--text-muted);">Batas Jam Masuk:</span>
+                  <span style="font-weight:700;color:var(--text-main);"><?= str_pad($batasJam, 2, '0', STR_PAD_LEFT) ?>:<?= str_pad($batasMenit, 2, '0', STR_PAD_LEFT) ?> WIB</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #f4f0e8;">
+                  <span style="color:var(--text-muted);">Koordinat Pusat:</span>
+                  <span style="font-weight:700;color:var(--text-main);font-family:monospace;"><?= round($kampusLat, 4) ?>, <?= round($kampusLng, 4) ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:8px;">
+                  <span style="color:var(--text-muted);">Total Mahasiswa:</span>
+                  <span style="font-weight:700;color:var(--text-main);"><?= $mahasiswa ?> Personel</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;">
+              <button type="button" class="btn btn-outline" style="width:100%;font-size:0.8rem;gap:6px;" onclick="switchNav('settings')">
+                <i class="fa-solid fa-sliders" style="color:var(--gold-dark);"></i>
+                <span>Buka Pengaturan Geofence Lengkap</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================== TAB RIWAYAT PRESENSI ===================== -->
+      <section id="tab-riwayat" class="tab-panel">
+        
         <!-- LOG PRESENSI TABLE CONTAINER -->
         <div class="table-container">
           
@@ -2016,14 +2493,21 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
     // ============================================
     function switchNav(tabName) {
       document.getElementById('nav-btn-dashboard').classList.toggle('active', tabName === 'dashboard');
+      document.getElementById('nav-btn-riwayat').classList.toggle('active', tabName === 'riwayat');
       document.getElementById('nav-btn-settings').classList.toggle('active', tabName === 'settings');
 
       document.getElementById('tab-dashboard').classList.toggle('active', tabName === 'dashboard');
+      document.getElementById('tab-riwayat').classList.toggle('active', tabName === 'riwayat');
       document.getElementById('tab-settings').classList.toggle('active', tabName === 'settings');
 
-      document.getElementById('page-title-crumb').textContent = tabName === 'dashboard' ? 'Presensi Realtime' : 'Konfigurasi Geofence';
+      let crumb = 'Dashboard Utama';
+      if (tabName === 'riwayat') crumb = 'Riwayat Presensi';
+      else if (tabName === 'settings') crumb = 'Konfigurasi Geofence';
+      document.getElementById('page-title-crumb').textContent = crumb;
 
-      if (tabName === 'settings') {
+      if (tabName === 'dashboard') {
+        setTimeout(initDashboardCharts, 80);
+      } else if (tabName === 'settings') {
         setTimeout(initSettingsMap, 100);
       }
 
@@ -2034,6 +2518,183 @@ $rateHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
     }
+
+    // ============================================
+    // GRAFIK KEHADIRAN (CHART.JS CLEAN LOOK)
+    // ============================================
+    let trendChartInstance = null;
+    let donutChartInstance = null;
+
+    function initDashboardCharts() {
+      // Data dari agregasi PHP
+      const labels = <?= $chartLabelsJson ?>;
+      const dataHadir = <?= $chartHadirJson ?>;
+      const dataTerlambat = <?= $chartTerlambatJson ?>;
+      const dataIzin = <?= $chartIzinJson ?>;
+
+      // 1. Line/Area Trend Chart
+      const trendCtx = document.getElementById('chart-trend-canvas');
+      if (trendCtx) {
+        if (trendChartInstance) {
+          trendChartInstance.destroy();
+        }
+        
+        trendChartInstance = new Chart(trendCtx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Tepat Waktu',
+                data: dataHadir,
+                borderColor: '#1e5a40',
+                backgroundColor: 'rgba(30, 90, 64, 0.12)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#1e5a40',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4.5,
+                pointHoverRadius: 6.5
+              },
+              {
+                label: 'Terlambat',
+                data: dataTerlambat,
+                borderColor: '#9c2436',
+                backgroundColor: 'rgba(156, 36, 54, 0.08)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#9c2436',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4.5,
+                pointHoverRadius: 6.5
+              },
+              {
+                label: 'Izin / Sakit',
+                data: dataIzin,
+                borderColor: '#d4a362',
+                backgroundColor: 'rgba(212, 163, 98, 0.08)',
+                borderWidth: 2,
+                borderDash: [5, 4],
+                fill: false,
+                tension: 0.35,
+                pointBackgroundColor: '#d4a362',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: {
+                  boxWidth: 10,
+                  boxHeight: 10,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' },
+                  color: '#5e5750',
+                  padding: 12
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(20, 18, 16, 0.92)',
+                titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+                bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11.5 },
+                padding: 10,
+                cornerRadius: 8,
+                boxPadding: 4
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                  color: '#8e8479'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0,
+                  stepSize: 1,
+                  font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                  color: '#8e8479'
+                },
+                grid: {
+                  color: 'rgba(22, 19, 17, 0.05)',
+                  drawBorder: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Donut Distribution Chart
+      const donutCtx = document.getElementById('chart-donut-canvas');
+      if (donutCtx) {
+        if (donutChartInstance) {
+          donutChartInstance.destroy();
+        }
+        
+        const totalLog = <?= (int)$total ?>;
+        const donutData = totalLog > 0 
+          ? [<?= (int)$hadir ?>, <?= (int)$terlambat ?>, <?= (int)$izinCount ?>]
+          : [0, 0, 0];
+
+        donutChartInstance = new Chart(donutCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Tepat Waktu', 'Terlambat', 'Izin / Sakit'],
+            datasets: [{
+              data: totalLog > 0 ? donutData : [1],
+              backgroundColor: totalLog > 0 
+                ? ['#1e5a40', '#9c2436', '#d4a362']
+                : ['#e4ded5'],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverOffset: 5
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                enabled: (totalLog > 0),
+                backgroundColor: 'rgba(20, 18, 16, 0.92)',
+                titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+                bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11.5 },
+                padding: 10,
+                cornerRadius: 8
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Inisialisasi Chart saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      initDashboardCharts();
+    });
 
     // ============================================
     // LIVE TABLE FILTER & SEARCH

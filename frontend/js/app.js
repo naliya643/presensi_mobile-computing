@@ -46,11 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showHome();
   } else {
     showPage('page-login');
-    const nimEl = document.getElementById('nim');
-    const passEl = document.getElementById('password');
-    if (nimEl && !nimEl.value) nimEl.value = '2021001';
-    if (passEl && !passEl.value) passEl.value = '123456';
-    resetDemoAccountPills('2021001');
+    resetDemoAccountPills();
   }
 
   updateJam();
@@ -185,6 +181,7 @@ function showHome() {
   document.getElementById('user-nim').textContent  = 'NIM: ' + currentUser.nim;
   switchTab('absensi');
   initMap();
+  setTimeout(() => { if (map) map.invalidateSize(); }, 250);
   refreshLokasi();
   checkStatusHariIni();
 }
@@ -200,6 +197,7 @@ function switchTab(tab) {
   if (tab === 'riwayat') {
     loadRiwayat();
   } else if (tab === 'absensi' && currentUser) {
+    if (map) setTimeout(() => map.invalidateSize(), 150);
     checkStatusHariIni();
   }
 }
@@ -246,9 +244,19 @@ function applyAttendanceStage(data) {
       badge.className   = 'badge badge-hadir';
     }
 
+    let cleanCatatan = (data.catatan || '').trim();
+    const lowerCat = cleanCatatan.toLowerCase();
+    if (lowerCat.startsWith(statusLower + ':')) {
+      cleanCatatan = cleanCatatan.substring(statusLower.length + 1).trim();
+    } else if (lowerCat.startsWith(statusLower + ' ')) {
+      cleanCatatan = cleanCatatan.substring(statusLower.length + 1).trim();
+    }
+    const labelKat = (kat === 'SAKIT') ? 'Sakit' : (kat === 'DISPENSASI') ? 'Dispensasi' : 'Izin';
+    const catatanTampil = cleanCatatan ? `: ${cleanCatatan}` : '';
+
     if (pillMasuk)  { pillMasuk.className = 'step-pill completed'; }
     if (iconMasuk)  { iconMasuk.innerHTML = '<i class="fa-solid fa-file-signature"></i>'; }
-    if (timeMasuk)  { timeMasuk.textContent = `Izin ${kat}${data.catatan ? ': ' + data.catatan : ''}`; }
+    if (timeMasuk)  { timeMasuk.textContent = `${labelKat}${catatanTampil}`; }
 
     if (pillPulang) { pillPulang.className = 'step-pill disabled'; }
     if (iconPulang) { iconPulang.innerHTML = '<i class="fa-solid fa-minus"></i>'; }
@@ -256,13 +264,12 @@ function applyAttendanceStage(data) {
 
     if (btnAbsen) {
       btnAbsen.disabled = true;
-      btnAbsen.className = 'btn btn-secondary btn-full btn-absen';
-      btnAbsen.innerHTML = `<i class="fa-solid fa-file-circle-check" id="btn-absen-icon"></i> <span id="btn-absen-text">Izin Tidak Hadir Tercatat (${kat})</span>`;
+      btnAbsen.className = 'status-complete-pill';
+      btnAbsen.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#16a34a;font-size:13px;"></i> <span id="btn-absen-text">Izin Hari Ini Tercatat (${labelKat})</span>`;
     }
 
     if (btnIzin) {
-      btnIzin.disabled = true;
-      btnIzin.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#1e5a40;font-size:14px;"></i> <span>Izin Hari Ini Telah Diajukan (${kat})</span>`;
+      btnIzin.style.display = 'none';
     }
     if (panelIzin) panelIzin.style.display = 'none';
 
@@ -290,8 +297,10 @@ function applyAttendanceStage(data) {
     }
 
     if (btnIzin) {
+      btnIzin.style.display = 'inline-flex';
       btnIzin.disabled = false;
-      btnIzin.innerHTML = '<i class="fa-regular fa-calendar-minus" style="color:var(--gold-dark);font-size:14px;"></i> <span id="btn-izin-label">Izin Tidak Hadir</span>';
+      btnIzin.className = 'btn btn-secondary btn-full btn-izin';
+      btnIzin.innerHTML = '<i class="fa-regular fa-calendar-minus" style="color:#a16207;font-size:12.5px;"></i> <span id="btn-izin-label">Izin Tidak Hadir</span>';
     }
 
   } else if (!data.has_pulang) {
@@ -321,8 +330,7 @@ function applyAttendanceStage(data) {
     }
 
     if (btnIzin) {
-      btnIzin.disabled = true;
-      btnIzin.innerHTML = '<i class="fa-solid fa-ban" style="color:var(--text-soft);font-size:14px;"></i> <span>Sudah Melakukan Presensi Hadir</span>';
+      btnIzin.style.display = 'none';
     }
     if (panelIzin) panelIzin.style.display = 'none';
 
@@ -348,13 +356,12 @@ function applyAttendanceStage(data) {
 
     if (btnAbsen) {
       btnAbsen.disabled = true;
-      btnAbsen.className = 'btn btn-secondary btn-full btn-absen';
-      btnAbsen.innerHTML = '<i class="fa-solid fa-circle-check" id="btn-absen-icon"></i> <span id="btn-absen-text">Presensi Hari Ini Selesai</span>';
+      btnAbsen.className = 'status-complete-pill';
+      btnAbsen.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#16a34a;font-size:13px;"></i> <span id="btn-absen-text">Presensi Hari Ini Selesai</span>';
     }
 
     if (btnIzin) {
-      btnIzin.disabled = true;
-      btnIzin.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#1e5a40;font-size:14px;"></i> <span>Presensi Hari Ini Lengkap</span>';
+      btnIzin.style.display = 'none';
     }
     if (panelIzin) panelIzin.style.display = 'none';
   }
@@ -378,11 +385,114 @@ function updateJam() {
 }
 
 // ============================================
-// LOGIN & LOGOUT
+// LOGIN, REGISTER & LOGOUT
 // ============================================
 function togglePassword() {
   const inp = document.getElementById('password');
   inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function toggleRegPassword() {
+  const inp = document.getElementById('reg-password');
+  const icon = document.getElementById('reg-eye-icon');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+  } else {
+    inp.type = 'password';
+    if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+  }
+}
+
+function switchAuthView(mode) {
+  const cardLogin = document.getElementById('card-auth-login');
+  const cardRegister = document.getElementById('card-auth-register');
+  const alertLogin = document.getElementById('login-alert');
+  const alertReg = document.getElementById('register-alert');
+
+  if (alertLogin) hideAlert(alertLogin);
+  if (alertReg) hideAlert(alertReg);
+
+  if (mode === 'register') {
+    if (cardLogin) cardLogin.style.display = 'none';
+    if (cardRegister) {
+      cardRegister.style.display = 'block';
+      const regNama = document.getElementById('reg-nama');
+      if (regNama) regNama.focus();
+    }
+  } else {
+    if (cardRegister) cardRegister.style.display = 'none';
+    if (cardLogin) cardLogin.style.display = 'block';
+  }
+}
+
+async function doRegister() {
+  const nama     = (document.getElementById('reg-nama')?.value || '').trim();
+  const nim      = (document.getElementById('reg-nim')?.value || '').trim();
+  const password = (document.getElementById('reg-password')?.value || '').trim();
+  const alertEl  = document.getElementById('register-alert');
+  const btnText  = document.getElementById('register-btn-text');
+  const btn      = document.getElementById('btn-submit-register');
+
+  hideAlert(alertEl);
+
+  if (!nama || !nim || !password) {
+    showAlert(alertEl, 'Nama lengkap, NIM, dan kata sandi wajib diisi.', 'error');
+    showToast('Nama lengkap, NIM, dan kata sandi wajib diisi.', 'error');
+    return;
+  }
+
+  if (nim.length < 3) {
+    showAlert(alertEl, 'NIM minimal terdiri dari 3 karakter.', 'error');
+    return;
+  }
+
+  if (password.length < 4) {
+    showAlert(alertEl, 'Kata sandi minimal terdiri dari 4 karakter.', 'error');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerHTML = '<span class="spinner"></span>Mendaftarkan…';
+
+  try {
+    const res = await postJSON(`${API_BASE}/register.php`, { nama, nim, password });
+    if (res.status === 'success') {
+      showToast('Pendaftaran akun berhasil! Silakan masuk.', 'success', 3500);
+
+      // Isi form login dengan data baru
+      const inpNim = document.getElementById('nim');
+      const inpPass = document.getElementById('password');
+      if (inpNim) inpNim.value = nim;
+      if (inpPass) inpPass.value = password;
+
+      // Bersihkan form registrasi
+      const rNama = document.getElementById('reg-nama');
+      const rNim = document.getElementById('reg-nim');
+      const rPass = document.getElementById('reg-password');
+      if (rNama) rNama.value = '';
+      if (rNim) rNim.value = '';
+      if (rPass) rPass.value = '';
+
+      // Alihkan ke tampilan login
+      switchAuthView('login');
+
+      const loginAlert = document.getElementById('login-alert');
+      if (loginAlert) {
+        showAlert(loginAlert, `Akun ${nama} (${nim}) berhasil didaftarkan. Silakan tekan tombol Masuk.`, 'success');
+      }
+    } else {
+      showAlert(alertEl, res.message || 'Pendaftaran gagal.', 'error');
+      showToast(res.message || 'Pendaftaran gagal.', 'error');
+    }
+  } catch (err) {
+    showAlert(alertEl, 'Gagal terhubung ke server: ' + err.message, 'error');
+    showToast('Gagal terhubung: ' + err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.textContent = 'Daftar Akun';
+  }
 }
 
 async function doLogin() {
@@ -571,16 +681,21 @@ function refreshLokasi() {
         jText.textContent = Math.round(jarak) + ' m (maks ' + MAX_RADIUS + ' m)';
       }
       document.getElementById('status-lokasi-text').innerHTML = dalamRadius
-        ? '<span style="color:#315e47;font-weight:700"><i class="fa-solid fa-circle-check" style="margin-right:4px;"></i>Memenuhi radius (' + Math.round(jarak) + 'm)</span>'
-        : '<span style="color:#8c3e51;font-weight:700"><i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i>Di luar radius (' + Math.round(jarak) + 'm)</span>';
+        ? '<span style="color:#16a34a;font-weight:600"><i class="fa-solid fa-circle-check" style="margin-right:5px;"></i>Memenuhi radius presensi (' + Math.round(jarak) + 'm)</span>'
+        : '<span style="color:#dc2626;font-weight:600"><i class="fa-solid fa-circle-xmark" style="margin-right:5px;"></i>Di luar radius kampus (' + Math.round(jarak) + 'm)</span>';
 
       updateMapUser(currentLat, currentLng);
     },
     err => {
-      const msg = err.code === 1 ? 'Izin lokasi ditolak'
-                : err.code === 2 ? 'Lokasi tidak tersedia'
-                : 'Batas waktu terlampaui';
-      document.getElementById('koordinat-text').textContent = msg;
+      const msg = err.code === 1 ? 'Izin lokasi GPS ditolak'
+                : err.code === 2 ? 'Lokasi GPS tidak tersedia'
+                : 'Batas waktu GPS terlampaui';
+      const slText = document.getElementById('status-lokasi-text');
+      if (slText) {
+        slText.innerHTML = '<span style="color:#dc2626;font-weight:600"><i class="fa-solid fa-circle-exclamation" style="margin-right:5px;"></i>' + msg + '</span>';
+      }
+      const kText = document.getElementById('koordinat-text');
+      if (kText) kText.textContent = msg;
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
@@ -667,8 +782,30 @@ function uploadFotoFile(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    fotoBase64 = e.target.result;
-    tampilkanPreview(fotoBase64);
+    const img = new Image();
+    img.onload = () => {
+      // Skala gambar maksimal 640px agar ringan, cepat, dan aman untuk database
+      const maxDim = 640;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      tampilkanPreview(fotoBase64);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -677,15 +814,23 @@ function tampilkanPreview(src) {
   document.getElementById('foto-preview').src = src;
   document.getElementById('foto-preview-wrap').style.display = 'block';
   document.getElementById('foto-placeholder').style.display  = 'none';
+  const indicator = document.getElementById('foto-status-indicator');
+  if (indicator) {
+    indicator.innerHTML = '<span style="color:#1e5a40;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Foto Siap</span>';
+  }
 }
 
 function hapusFoto() {
   fotoBase64 = null;
   document.getElementById('foto-preview').src = '';
   document.getElementById('foto-preview-wrap').style.display = 'none';
-  document.getElementById('foto-placeholder').style.display  = 'block';
+  document.getElementById('foto-placeholder').style.display  = 'flex';
   const inp = document.getElementById('input-foto');
   if (inp) inp.value = '';
+  const indicator = document.getElementById('foto-status-indicator');
+  if (indicator) {
+    indicator.textContent = 'Wajib Dilampirkan';
+  }
 }
 
 // ============================================

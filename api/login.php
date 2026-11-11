@@ -26,12 +26,11 @@ if (empty($nim) || empty($password)) {
     sendResponse('error', 'NIM dan password wajib diisi');
 }
 
-$conn    = getConnection();
-$passMd5 = md5($password);
-$stmt    = $conn->prepare(
-    "SELECT id, nama, nim FROM users WHERE nim = ? AND password = ?"
+$conn = getConnection();
+$stmt = $conn->prepare(
+    "SELECT id, nama, nim, password FROM users WHERE nim = ? LIMIT 1"
 );
-$stmt->bind_param('ss', $nim, $passMd5);
+$stmt->bind_param('s', $nim);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -41,6 +40,25 @@ if ($result->num_rows === 0) {
 }
 
 $user = $result->fetch_assoc();
+$isPasswordValid = false;
+
+if (password_verify($password, $user['password'])) {
+    $isPasswordValid = true;
+} elseif (md5($password) === $user['password']) {
+    $isPasswordValid = true;
+    // Upgrade otomatis hash MD5 lama ke modern BCRYPT
+    $newHash = password_hash($password, PASSWORD_DEFAULT);
+    $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $upd->bind_param('si', $newHash, $user['id']);
+    $upd->execute();
+    $upd->close();
+}
+
+if (!$isPasswordValid) {
+    $conn->close();
+    sendResponse('error', 'NIM atau password salah');
+}
+
 $conn->close();
 
 sendResponse('success', 'Login berhasil', [
